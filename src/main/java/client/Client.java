@@ -6,8 +6,6 @@ import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 
 public class Client extends Application {
-  private final Whiteboard wb = new Whiteboard();
-  private final UserPane userPane = new UserPane();
 
   public void startGUI(String[] args) {
     launch(args);
@@ -15,9 +13,10 @@ public class Client extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    wb.addTools();
+    Whiteboard wb = new Whiteboard();
+    UserPane userPane = new UserPane();
 
-    primaryStage.setTitle("Whiteboard application");
+    primaryStage.setTitle("Whiteboard Application");
 
     HBox root = new HBox();
 
@@ -30,5 +29,8 @@ public class Client extends Application {
     primaryStage.show();
 
     wb.getCanvas().setOnMouseDragged(wb::draw);
+    wb.getCanvas().setOnMousePressed(wb::click);
+    wb.getCanvas().setOnMouseReleased(wb::release);
+    root.setOnKeyPressed(wb::type);
   }
 }

@@ -3,6 +3,7 @@ package client;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -14,8 +15,21 @@ public class Whiteboard {
 
   private final GraphicsContext gc = canvas.getGraphicsContext2D();
 
-  public StackPane getCanvas() {
+  private Tool tool = Tool.PAINT;
+
+  public Whiteboard() {
     canvasContainer.setBorder(getBorder());
+
+    for (Tool t : Tool.values()) {
+      Button btn = new Button(t.name());
+      toolbox.getChildren().add(btn);
+      btn.setOnAction(e -> {
+        tool = t;
+      });
+    }
+  }
+
+  public StackPane getCanvas() {
     return canvasContainer;
   }
 
@@ -31,19 +45,23 @@ public class Whiteboard {
     return new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
   }
 
-  public void addTools() {
-    Button btn1 = new Button("ph");
-    Button btn2 = new Button("ph");
-
-    toolbox.getChildren().add(btn1);
-    toolbox.getChildren().add(btn2);
-  }
-
   public VBox getToolbox() {
     return toolbox;
   }
 
   public void draw(MouseEvent e) {
-    gc.strokeLine(e.getX(), e.getY(), e.getX(), e.getY());
+    tool.useDragTool(gc, e);
+  }
+
+  public void click(MouseEvent e) {
+    tool.useClickTool(gc, e);
+  }
+
+  public void release(MouseEvent e) {
+    tool.useReleaseTool(gc, e);
+  }
+
+  public void type(KeyEvent e) {
+    tool.useTypeTool(gc, e);
   }
 }
