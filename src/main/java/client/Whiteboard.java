@@ -19,12 +19,17 @@ public class Whiteboard {
 
   public Whiteboard() {
     canvasContainer.setBorder(getBorder());
+    toolbox.setFillWidth(true);
 
     for (Tool t : Tool.values()) {
       Button btn = new Button(t.name());
+      btn.setMaxWidth(Double.MAX_VALUE);
+      btn.setPrefHeight(40);
       toolbox.getChildren().add(btn);
+
       btn.setOnAction(e -> {
         tool = t;
+        t.onButtonClick(toolbox, btn, gc);
       });
     }
   }
