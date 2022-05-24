@@ -2,8 +2,8 @@ package client;
 
 import javafx.scene.layout.VBox;
 
-public class UserPane {
-  public VBox createUserPane() {
+class UserPane {
+  VBox createUserPane() {
     return new VBox();
   }
 }

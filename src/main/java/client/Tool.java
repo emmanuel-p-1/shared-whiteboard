@@ -1,49 +1,63 @@
 package client;
 
+import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.BackgroundFill;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
+import javafx.scene.text.Font;
 
-public enum Tool {
+enum Tool {
   PAINT {
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       gc.strokeLine(e.getX(), e.getY(), e.getX(), e.getY());
     }
 
     @Override
-    public void useDragTool(GraphicsContext gc, MouseEvent e) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       gc.strokeLine(e.getX(), e.getY(), e.getX(), e.getY());
     }
   },
   ERASE {
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
-      gc.clearRect(e.getX(), e.getY(), 1, 1);
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      double x = e.getX() - (gc.getLineWidth() / 2);
+      double y = e.getY() - (gc.getLineWidth() / 2);
+      gc.clearRect(x, y, gc.getLineWidth(), gc.getLineWidth());
     }
 
     @Override
-    public void useDragTool(GraphicsContext gc, MouseEvent e) {
-      gc.clearRect(e.getX(), e.getY(), 1, 1);
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      double x = e.getX() - (gc.getLineWidth() / 2);
+      double y = e.getY() - (gc.getLineWidth() / 2);
+      gc.clearRect(x, y, gc.getLineWidth(), gc.getLineWidth());
     }
   },
   LINE {
     double x, y;
 
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    public void useReleaseTool(GraphicsContext gc, MouseEvent e) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.setLineWidth(gc.getLineWidth());
+      edit.setLineCap(StrokeLineCap.ROUND);
+
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+      edit.strokeLine(e.getX(), e.getY(), x, y);
+    }
+
+    @Override
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+
       gc.strokeLine(e.getX(), e.getY(), x, y);
     }
   },
@@ -51,13 +65,34 @@ public enum Tool {
     double x, y;
 
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    public void useReleaseTool(GraphicsContext gc, MouseEvent e) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.setLineWidth(gc.getLineWidth());
+      edit.setLineCap(StrokeLineCap.ROUND);
+
+      double topLeftX = Math.min(x, e.getX());
+      double topLeftY = Math.min(y, e.getY());
+      double bottomRightX = Math.max(x, e.getX());
+      double bottomRightY = Math.max(y, e.getY());
+
+      double width = bottomRightX - topLeftX;
+      double height = bottomRightY - topLeftY;
+
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+      edit.strokeOval(topLeftX, topLeftY, width, height);
+    }
+
+    @Override
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+
       double topLeftX = Math.min(x, e.getX());
       double topLeftY = Math.min(y, e.getY());
       double bottomRightX = Math.max(x, e.getX());
@@ -73,13 +108,28 @@ public enum Tool {
     double x, y;
 
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    public void useReleaseTool(GraphicsContext gc, MouseEvent e) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.setLineWidth(gc.getLineWidth());
+      edit.setLineCap(StrokeLineCap.ROUND);
+
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+      edit.strokeLine((x + e.getX()) / 2, y, x, e.getY());
+      edit.strokeLine((x + e.getX()) / 2, y, e.getX(), e.getY());
+      edit.strokeLine(x, e.getY(), e.getX(), e.getY());
+    }
+
+    @Override
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+
       gc.strokeLine((x + e.getX()) / 2, y, x, e.getY());
       gc.strokeLine((x + e.getX()) / 2, y, e.getX(), e.getY());
       gc.strokeLine(x, e.getY(), e.getX(), e.getY());
@@ -89,13 +139,17 @@ public enum Tool {
     double x, y;
 
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    public void useReleaseTool(GraphicsContext gc, MouseEvent e) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+      edit.setLineWidth(gc.getLineWidth());
+      edit.setLineCap(StrokeLineCap.ROUND);
+
       double topLeftX = Math.min(x, e.getX());
       double topLeftY = Math.min(y, e.getY());
       double bottomRightX = Math.max(x, e.getX());
@@ -104,72 +158,56 @@ public enum Tool {
       double width = bottomRightX - topLeftX;
       double height = bottomRightY - topLeftY;
 
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
+      edit.strokeRect(topLeftX, topLeftY, width, height);
+    }
+
+    @Override
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      GraphicsContext edit = editLayer.getGraphicsContext2D();
+
+      double topLeftX = Math.min(x, e.getX());
+      double topLeftY = Math.min(y, e.getY());
+      double bottomRightX = Math.max(x, e.getX());
+      double bottomRightY = Math.max(y, e.getY());
+
+      double width = bottomRightX - topLeftX;
+      double height = bottomRightY - topLeftY;
+
+      edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
       gc.strokeRect(topLeftX, topLeftY, width, height);
     }
   },
   TEXT {
-    double x, y;
-    boolean pointSelected = false;
-
     @Override
-    public void useClickTool(GraphicsContext gc, MouseEvent e) {
-      x = e.getX();
-      y = e.getY();
-      pointSelected = true;
-    }
+    void useClickTool(TextField text, GraphicsContext gc, MouseEvent e) {
+      double textSize = gc.getLineWidth();
+      double posX = e.getX() + (textSize / 2);
+      double posY = e.getY() + (textSize / 2);
+      String fontName = text.getFont().getName();
 
-    @Override
-    public void useTypeTool(GraphicsContext gc, KeyEvent e) {
-      if (pointSelected) {
-        gc.strokeText(e.getText(), x, y);
-        x += 8;
-      }
-    }
-  },
-  COLOUR {
-    private final Color[] colors = {
-            Color.BLACK, Color.WHITE, Color.AQUA, Color.BLUE,
-            Color.VIOLET, Color.BURLYWOOD, Color.CYAN, Color.DARKBLUE,
-            Color.DARKGREEN, Color.RED, Color.LIME, Color.MAGENTA,
-            Color.MAROON, Color.ORANGE, Color.PLUM, Color.YELLOW};
+      text.setVisible(true);
+      text.clear();
+      text.setTranslateX(e.getX());
+      text.setTranslateY(e.getY() - (text.getScene().getHeight() / 2));
+      text.setFont(Font.font(fontName, textSize));
+      text.requestFocus();
 
-    @Override
-    public void onButtonClick(VBox toolbox, Button button, GraphicsContext gc) {
-      toolbox.getChildren().remove(button);
-
-      int n = 0;
-      GridPane palette = new GridPane();
-      for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 2; j++) {
-          Color color = colors[n];
-
-          Button btn = new Button();
-          btn.setMaxWidth(Double.MAX_VALUE);
-          btn.setBackground(new Background(new BackgroundFill(color, null, null)));
-
-          palette.add(btn, j, i);
-
-          btn.setOnAction(e -> {
-            gc.setStroke(color);
-            toolbox.getChildren().remove(palette);
-            toolbox.getChildren().add(COLOUR.ordinal(), button);
-          });
-
-          n++;
-        }
-      }
-
-      toolbox.getChildren().add(COLOUR.ordinal(), palette);
+      text.setOnAction(ev -> {
+        gc.setLineWidth(1);
+        gc.setFont(Font.font(fontName, textSize));
+        gc.fillText(text.getText(), posX, posY);
+        gc.setLineWidth(textSize);
+        text.setVisible(false);
+      });
     }
   };
 
-  public void useDragTool(GraphicsContext gc, MouseEvent e) {}
+  void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 
-  public void useClickTool(GraphicsContext gc, MouseEvent e) {}
+  void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 
-  public void useReleaseTool(GraphicsContext gc, MouseEvent e) {}
+  void useClickTool(TextField textLayer, GraphicsContext gc, MouseEvent e) {}
 
-  public void useTypeTool(GraphicsContext gc, KeyEvent e) {}
-
-  public void onButtonClick(VBox toolbox, Button button, GraphicsContext gc) {}
+  void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 }

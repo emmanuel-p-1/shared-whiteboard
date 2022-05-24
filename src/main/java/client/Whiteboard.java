@@ -3,23 +3,32 @@ package client;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.Button;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.StrokeLineCap;
 
-public class Whiteboard {
+class Whiteboard {
   private final Canvas canvas = new Canvas(1000, 1000);
-  private final StackPane canvasContainer = new StackPane(canvas);
+  private final Canvas editLayer = new Canvas(1000, 1000);
+  private final TextField textLayer = new TextField();
+  private final StackPane canvasContainer = new StackPane(canvas, editLayer, textLayer);
   private final VBox toolbox = new VBox();
+  private final VBox toolProperties = new VBox();
 
   private final GraphicsContext gc = canvas.getGraphicsContext2D();
 
   private Tool tool = Tool.PAINT;
 
-  public Whiteboard() {
+  Whiteboard() {
     canvasContainer.setBorder(getBorder());
     toolbox.setFillWidth(true);
+    textLayer.setVisible(false);
+    textLayer.setBackground(Background.EMPTY);
+
+    gc.setLineWidth(10);
+    gc.setLineCap(StrokeLineCap.ROUND);
 
     for (Tool t : Tool.values()) {
       Button btn = new Button(t.name());
@@ -29,12 +38,15 @@ public class Whiteboard {
 
       btn.setOnAction(e -> {
         tool = t;
-        t.onButtonClick(toolbox, btn, gc);
       });
+    }
+
+    for (ToolProperty t : ToolProperty.values()) {
+      toolProperties.getChildren().add(t.getNode(gc));
     }
   }
 
-  public StackPane getCanvas() {
+  StackPane getCanvas() {
     return canvasContainer;
   }
 
@@ -50,23 +62,22 @@ public class Whiteboard {
     return new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
   }
 
-  public VBox getToolbox() {
-    return toolbox;
+  VBox getToolbox() {
+    VBox box = new VBox(toolbox, toolProperties);
+    box.setSpacing(50);
+    return box;
   }
 
-  public void draw(MouseEvent e) {
-    tool.useDragTool(gc, e);
+  void draw(MouseEvent e) {
+    tool.useDragTool(editLayer, gc, e);
   }
 
-  public void click(MouseEvent e) {
-    tool.useClickTool(gc, e);
+  void click(MouseEvent e) {
+    tool.useClickTool(editLayer, gc, e);
+    tool.useClickTool(textLayer, gc, e);
   }
 
-  public void release(MouseEvent e) {
-    tool.useReleaseTool(gc, e);
-  }
-
-  public void type(KeyEvent e) {
-    tool.useTypeTool(gc, e);
+  void release(MouseEvent e) {
+    tool.useReleaseTool(editLayer, gc, e);
   }
 }

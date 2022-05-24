@@ -7,7 +7,7 @@ import javafx.stage.Stage;
 
 public class Client extends Application {
 
-  public void startGUI(String[] args) {
+  protected void startGUI(String[] args) {
     launch(args);
   }
 
@@ -31,6 +31,5 @@ public class Client extends Application {
     wb.getCanvas().setOnMouseDragged(wb::draw);
     wb.getCanvas().setOnMousePressed(wb::click);
     wb.getCanvas().setOnMouseReleased(wb::release);
-    root.setOnKeyPressed(wb::type);
   }
 }
