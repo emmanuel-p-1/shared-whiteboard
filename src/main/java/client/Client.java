@@ -4,8 +4,17 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import remote.Action;
+import server.Server;
+
+import java.util.ArrayList;
 
 public class Client extends Application {
+  static ArrayList<Action> actions = new ArrayList<>();
+  static Whiteboard wb;
+  static UserPane userPane;
+
+  Connection connection;
 
   protected void startGUI(String[] args) {
     launch(args);
@@ -13,8 +22,8 @@ public class Client extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    Whiteboard wb = new Whiteboard();
-    UserPane userPane = new UserPane();
+    wb = new Whiteboard();
+    userPane = new UserPane();
 
     primaryStage.setTitle("Whiteboard Application");
 
@@ -31,5 +40,13 @@ public class Client extends Application {
     wb.getCanvas().setOnMouseDragged(wb::draw);
     wb.getCanvas().setOnMousePressed(wb::click);
     wb.getCanvas().setOnMouseReleased(wb::release);
+
+    startConnection();
+  }
+
+  private void startConnection() {
+    Server.run();
+    connection = new Connection();
+    connection.start();
   }
 }

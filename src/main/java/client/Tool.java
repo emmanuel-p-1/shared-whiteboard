@@ -6,17 +6,18 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
+import remote.Action;
 
-enum Tool {
+public enum Tool {
   PAINT {
     @Override
     void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
-      gc.strokeLine(e.getX(), e.getY(), e.getX(), e.getY());
+      Client.actions.add(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
     }
 
     @Override
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
-      gc.strokeLine(e.getX(), e.getY(), e.getX(), e.getY());
+      Client.actions.add(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   ERASE {
@@ -24,14 +25,14 @@ enum Tool {
     void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       double x = e.getX() - (gc.getLineWidth() / 2);
       double y = e.getY() - (gc.getLineWidth() / 2);
-      gc.clearRect(x, y, gc.getLineWidth(), gc.getLineWidth());
+      Client.actions.add(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
     }
 
     @Override
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       double x = e.getX() - (gc.getLineWidth() / 2);
       double y = e.getY() - (gc.getLineWidth() / 2);
-      gc.clearRect(x, y, gc.getLineWidth(), gc.getLineWidth());
+      Client.actions.add(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
     }
   },
   LINE {
@@ -47,6 +48,7 @@ enum Tool {
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
+      edit.setStroke(gc.getStroke());
       edit.setLineCap(StrokeLineCap.ROUND);
 
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
@@ -57,8 +59,7 @@ enum Tool {
     void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-
-      gc.strokeLine(e.getX(), e.getY(), x, y);
+      Client.actions.add(new Action(Tool.LINE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   CIRCLE {
@@ -74,6 +75,7 @@ enum Tool {
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
+      edit.setStroke(gc.getStroke());
       edit.setLineCap(StrokeLineCap.ROUND);
 
       double topLeftX = Math.min(x, e.getX());
@@ -100,8 +102,7 @@ enum Tool {
 
       double width = bottomRightX - topLeftX;
       double height = bottomRightY - topLeftY;
-
-      gc.strokeOval(topLeftX, topLeftY, width, height);
+      Client.actions.add(new Action(Tool.CIRCLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   TRIANGLE {
@@ -117,6 +118,7 @@ enum Tool {
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
+      edit.setStroke(gc.getStroke());
       edit.setLineCap(StrokeLineCap.ROUND);
 
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
@@ -129,10 +131,7 @@ enum Tool {
     void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-
-      gc.strokeLine((x + e.getX()) / 2, y, x, e.getY());
-      gc.strokeLine((x + e.getX()) / 2, y, e.getX(), e.getY());
-      gc.strokeLine(x, e.getY(), e.getX(), e.getY());
+      Client.actions.add(new Action(Tool.TRIANGLE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   RECTANGLE {
@@ -148,6 +147,7 @@ enum Tool {
     void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
+      edit.setStroke(gc.getStroke());
       edit.setLineCap(StrokeLineCap.ROUND);
 
       double topLeftX = Math.min(x, e.getX());
@@ -175,7 +175,7 @@ enum Tool {
       double height = bottomRightY - topLeftY;
 
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-      gc.strokeRect(topLeftX, topLeftY, width, height);
+      Client.actions.add(new Action(Tool.RECTANGLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   TEXT {
@@ -194,10 +194,7 @@ enum Tool {
       text.requestFocus();
 
       text.setOnAction(ev -> {
-        gc.setLineWidth(1);
-        gc.setFont(Font.font(fontName, textSize));
-        gc.fillText(text.getText(), posX, posY);
-        gc.setLineWidth(textSize);
+        Client.actions.add(new Action(Tool.TEXT, text.getText(), posX, posY, textSize, gc.getStroke().toString()));
         text.setVisible(false);
       });
     }
