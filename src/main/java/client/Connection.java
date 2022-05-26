@@ -5,6 +5,7 @@ import remote.ILogin;
 import remote.ISession;
 
 import javax.security.auth.login.LoginException;
+import java.net.Inet4Address;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
@@ -14,7 +15,7 @@ public class Connection extends Thread {
 
   Connection(String username, String serverName) {
     try {
-      Registry registry = LocateRegistry.getRegistry("localhost", 1234);
+      Registry registry = LocateRegistry.getRegistry(Inet4Address.getLocalHost().getHostAddress(), 1234);
       remote = ((ILogin) registry.lookup(serverName)).login(username);
       System.err.println("connected");
     } catch (LoginException e) {
