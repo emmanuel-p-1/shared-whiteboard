@@ -10,6 +10,7 @@ public class Login {
   private final Scene scene;
   private final TextField username = new TextField();
   private final TextField serverName = new TextField();
+  private final TextField address = new TextField();
   private final Button create = new Button("Create Server");
   private final Button connect = new Button("Connect to Server");
 
@@ -19,6 +20,7 @@ public class Login {
 
     layout.getChildren().add(username);
     layout.getChildren().add(serverName);
+    layout.getChildren().add(address);
     layout.getChildren().add(create);
     layout.getChildren().add(connect);
 
@@ -27,6 +29,7 @@ public class Login {
     connect.setMaxWidth(400);
     username.setPromptText("Username");
     serverName.setPromptText("Server Name");
+    address.setPromptText("IP Address");
   }
 
   Scene getScene() {
@@ -39,6 +42,10 @@ public class Login {
 
   String getServerName() {
     return serverName.getText();
+  }
+
+  String getAddress() {
+    return address.getText();
   }
 
   Button getCreate() {

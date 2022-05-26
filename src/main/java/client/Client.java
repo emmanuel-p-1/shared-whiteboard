@@ -7,6 +7,8 @@ import javafx.stage.Stage;
 import remote.Action;
 import server.Server;
 
+import java.net.Inet4Address;
+import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -48,14 +50,14 @@ public class Client extends Application {
         primaryStage.setScene(main);
         primaryStage.show();
         primaryStage.centerOnScreen();
-      } catch (AlreadyBoundException | RemoteException ex) {
+      } catch (AlreadyBoundException | RemoteException | UnknownHostException ex) {
         // Unhandled Exception
         ex.printStackTrace();
       }
     });
 
     login.getConnect().setOnAction(e -> {
-      joinConnection(login.getUsername(), login.getServerName());
+      joinConnection(login.getUsername(), login.getServerName(), login.getAddress());
       primaryStage.setScene(main);
       primaryStage.show();
       primaryStage.centerOnScreen();
@@ -66,15 +68,15 @@ public class Client extends Application {
     wb.getCanvas().setOnMouseReleased(wb::release);
   }
 
-  private void startConnection(String username, String serverName) throws AlreadyBoundException, RemoteException {
+  private void startConnection(String username, String serverName) throws AlreadyBoundException, RemoteException, UnknownHostException {
     server = new Server(serverName);
     server.run();
-    connection = new Connection(username, serverName);
+    connection = new Connection(username, serverName, Inet4Address.getLocalHost().getHostAddress());
     connection.start();
   }
 
-  private void joinConnection(String username, String serverName) {
-    connection = new Connection(username, serverName);
+  private void joinConnection(String username, String serverName, String address) {
+    connection = new Connection(username, serverName, address);
     connection.start();
   }
 }

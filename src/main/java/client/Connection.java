@@ -13,9 +13,9 @@ import java.util.ArrayList;
 public class Connection extends Thread {
   private ISession remote;
 
-  Connection(String username, String serverName) {
+  Connection(String username, String serverName, String address) {
     try {
-      Registry registry = LocateRegistry.getRegistry(Inet4Address.getLocalHost().getHostAddress(), 1234);
+      Registry registry = LocateRegistry.getRegistry(address, 1234);
       remote = ((ILogin) registry.lookup(serverName)).login(username);
       System.err.println("connected");
     } catch (LoginException e) {
