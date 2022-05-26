@@ -1,20 +1,25 @@
 package client;
 
 import remote.Action;
-import remote.RemoteInterface;
+import remote.ILogin;
+import remote.ISession;
 
+import javax.security.auth.login.LoginException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
 
 public class Connection extends Thread {
-  private RemoteInterface remote;
+  private ISession remote;
 
-  Connection() {
+  Connection(String username, String serverName) {
     try {
       Registry registry = LocateRegistry.getRegistry("localhost", 1234);
-      remote = (RemoteInterface) registry.lookup("server");
+      remote = ((ILogin) registry.lookup(serverName)).login(username);
       System.err.println("connected");
+    } catch (LoginException e) {
+      // Unhandled Exception
+      System.out.println(e.getMessage());
     } catch (Exception e) {
       // Unhandled Exception
       e.printStackTrace();
@@ -25,13 +30,11 @@ public class Connection extends Thread {
   public void run() {
     while (!isInterrupted()) {
       try {
-        ArrayList<Action> copy = new ArrayList<>(Client.actions);
-        Client.actions = new ArrayList<>();
+        ArrayList<Action> copy = new ArrayList<>(Client.recentActions);
+        Client.recentActions = new ArrayList<>();
         remote.sendActions(copy);
 
-        ArrayList<Action> actions = remote.receiveActions();
-        Client.wb.clearCanvas();
-        Client.wb.addActionsToCanvas(actions);
+        Client.wb.addActionsToCanvas((ArrayList<Action>) remote.receiveActions());
 
         sleep(100);
       } catch (Exception e) {

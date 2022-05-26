@@ -86,10 +86,6 @@ class Whiteboard {
     tool.useReleaseTool(editLayer, gc, e);
   }
 
-  void clearCanvas() {
-    gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
-  }
-
   void addActionsToCanvas(ArrayList<Action> actions) {
     Paint paint = gc.getStroke();
     double lineWidth = gc.getLineWidth();
@@ -125,7 +121,7 @@ class Whiteboard {
           gc.strokeRect(action.getX1(), action.getY1(), action.getX2(), action.getY2());
         }
         case TEXT -> {
-          gc.setStroke(Color.web(action.getPaint()));
+          gc.setFill(Color.web(action.getPaint()));
           gc.setLineWidth(1);
           gc.setFont(Font.font("System", action.getSize()));
           gc.fillText(action.getText(), action.getX1(), action.getY1());
