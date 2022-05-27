@@ -13,4 +13,6 @@ public interface ISession extends Remote {
   boolean isAdmin() throws RemoteException;
 
   List<String> getSessions() throws RemoteException;
+
+  void logout() throws RemoteException;
 }

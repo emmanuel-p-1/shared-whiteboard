@@ -72,6 +72,12 @@ public class Whiteboard {
   }
 
   public VBox getToolbox() {
+    VBox box = new VBox(toolbox, toolProperties);
+    box.setSpacing(50);
+    return box;
+  }
+
+  public VBox getAdminToolbox() {
     VBox box = new VBox(options, toolbox, toolProperties);
     box.setSpacing(50);
     return box;
@@ -90,7 +96,7 @@ public class Whiteboard {
     tool.useReleaseTool(editLayer, gc, e);
   }
 
-  public void addActionsToCanvas(ArrayList<Action> actions) {
+  public void processActions(ArrayList<Action> actions) {
     Paint paint = gc.getStroke();
     double lineWidth = gc.getLineWidth();
 

@@ -27,6 +27,7 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
     this.isAdmin = isAdmin;
   }
 
+  @Override
   public void unreferenced() {
     try {
       unexportObject(this, true);
@@ -71,5 +72,10 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
     });
 
     return usernames;
+  }
+
+  @Override
+  public void logout() throws RemoteException {
+    unexportObject(this, true);
   }
 }
