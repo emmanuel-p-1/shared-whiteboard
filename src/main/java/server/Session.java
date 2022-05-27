@@ -31,7 +31,7 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
 
   @Override
   public ArrayList<Action> receiveActions() throws RemoteException {
-    List<Action> subList = allActions.subList(index, allActions.size());
+    List<Action> subList = new ArrayList<>(allActions.subList(index, allActions.size()));
     ArrayList<Action> unperformedActions = new ArrayList<>(subList);
 
     unperformedActions.removeAll(actions);

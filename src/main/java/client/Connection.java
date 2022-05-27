@@ -5,7 +5,6 @@ import remote.ILogin;
 import remote.ISession;
 
 import javax.security.auth.login.LoginException;
-import java.net.Inet4Address;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.util.ArrayList;
