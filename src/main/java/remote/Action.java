@@ -1,7 +1,7 @@
 package remote;
 
-import client.Tool;
-import javafx.scene.paint.Paint;
+import client.whiteboard.Option;
+import client.whiteboard.Tool;
 
 import java.io.Serializable;
 
@@ -15,6 +15,9 @@ public class Action implements Serializable {
   private final double size;
   private final String paint;
 
+  private final Option option;
+  private final byte[] canvas;
+
   // Erase
   public Action(Tool tool, double x1, double y1, double size) {
     this.tool = tool;
@@ -25,6 +28,8 @@ public class Action implements Serializable {
     this.y2 = 0;
     this.size = size;
     this.paint = null;
+    this.option = null;
+    this.canvas = null;
   }
 
   // Paint
@@ -37,6 +42,8 @@ public class Action implements Serializable {
     this.y2 = 0;
     this.size = size;
     this.paint = paint;
+    this.option = null;
+    this.canvas = null;
   }
 
   // Text
@@ -49,6 +56,8 @@ public class Action implements Serializable {
     this.y2 = 0;
     this.size = size;
     this.paint = paint;
+    this.option = null;
+    this.canvas = null;
   }
 
   // Line, Circle, Triangle, Rectangle
@@ -61,6 +70,22 @@ public class Action implements Serializable {
     this.y2 = y2;
     this.size = size;
     this.paint = paint;
+    this.option = null;
+    this.canvas = null;
+  }
+
+  // New/Open canvas
+  public Action(Option option, byte[] canvas) {
+    this.tool = null;
+    this.text = null;
+    this.x1 = 0;
+    this.y1 = 0;
+    this.x2 = 0;
+    this.y2 = 0;
+    this.size = 0;
+    this.paint = null;
+    this.option = option;
+    this.canvas = canvas;
   }
 
   public Tool getTool() {
@@ -93,5 +118,13 @@ public class Action implements Serializable {
 
   public double getY2() {
     return y2;
+  }
+
+  public Option getOption() {
+    return option;
+  }
+
+  public byte[] getCanvas() {
+    return canvas;
   }
 }

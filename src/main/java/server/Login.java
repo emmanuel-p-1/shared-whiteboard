@@ -9,10 +9,12 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 
 class Login extends UnicastRemoteObject implements ILogin {
-  ArrayList<String> users;
+  private final ArrayList<String> users;
+  private final String admin;
 
-  protected Login() throws RemoteException {
+  protected Login(String admin) throws RemoteException {
     users = new ArrayList<>();
+    this.admin = admin;
   }
 
   @Override
@@ -20,6 +22,8 @@ class Login extends UnicastRemoteObject implements ILogin {
     if (users.contains(username)) {
       throw new LoginException("Username taken.");
     }
-    return new Session();
+    users.add(username);
+    if (username.equals(admin)) return new Session(username, true);
+    return new Session(username,false);
   }
 }

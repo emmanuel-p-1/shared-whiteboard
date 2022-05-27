@@ -1,4 +1,4 @@
-package client;
+package client.whiteboard;
 
 import javafx.geometry.Orientation;
 import javafx.scene.Node;

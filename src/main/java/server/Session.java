@@ -11,13 +11,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 class Session extends UnicastRemoteObject implements ISession, Unreferenced {
-  private static ArrayList<Action> allActions;
-  private final ArrayList<Action> actions;
-  private int index;
+  private static final ArrayList<Action> allActions = new ArrayList<>();
+  private static final ArrayList<Session> sessions = new ArrayList<>();
 
-  protected Session() throws RemoteException {
+  private final ArrayList<Action> actions;
+  private int index = 0;
+
+  private final String username;
+  private final boolean isAdmin;
+
+  protected Session(String username, boolean isAdmin) throws RemoteException {
+    sessions.add(this);
     actions = new ArrayList<>();
-    allActions = new ArrayList<>();
+    this.username = username;
+    this.isAdmin = isAdmin;
   }
 
   public void unreferenced() {
@@ -31,6 +38,7 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
 
   @Override
   public ArrayList<Action> receiveActions() throws RemoteException {
+    // TODO: Turn into synchronized
     List<Action> subList = new ArrayList<>(allActions.subList(index, allActions.size()));
     ArrayList<Action> unperformedActions = new ArrayList<>(subList);
 
@@ -43,6 +51,25 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
 
   @Override
   public void sendActions(ArrayList<Action> actions) throws RemoteException {
-    allActions.addAll(actions);
+    for (Action action : actions) {
+      if (isAdmin && action.getTool() == null) allActions.add(action);
+      if (action.getTool() != null) allActions.add(action);
+    }
+  }
+
+  @Override
+  public boolean isAdmin() throws RemoteException {
+    return isAdmin;
+  }
+
+  @Override
+  public ArrayList<String> getSessions() throws RemoteException {
+    ArrayList<String> usernames = new ArrayList<>();
+
+    sessions.forEach(s -> {
+      usernames.add(s.username);
+    });
+
+    return usernames;
   }
 }

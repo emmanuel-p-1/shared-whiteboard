@@ -10,7 +10,7 @@ import java.rmi.registry.Registry;
 import java.util.ArrayList;
 
 public class Connection extends Thread {
-  private ISession remote;
+  private static ISession remote;
 
   Connection(String username, String serverName, String address) {
     try {

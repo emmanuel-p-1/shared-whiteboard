@@ -15,11 +15,11 @@ public class Server {
   }
 
   public static void main(String[] args) throws AlreadyBoundException, RemoteException {
-    new Server(args[0]).run();
+    new Server(args[0]).run("admin");
   }
 
-  public void run() throws RemoteException, AlreadyBoundException {
-    ILogin login = new Login();
+  public void run(String admin) throws RemoteException, AlreadyBoundException {
+    ILogin login = new Login(admin);
     Registry registry = LocateRegistry.createRegistry(1234);
     registry.bind(serverName, login);
     System.err.println("server ready");

@@ -1,5 +1,6 @@
 package client;
 
+import client.whiteboard.Whiteboard;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.layout.HBox;
@@ -14,10 +15,12 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 
 public class Client extends Application {
-  static ArrayList<Action> recentActions = new ArrayList<>();
+  public static ArrayList<Action> recentActions = new ArrayList<>();
   static Whiteboard wb;
   static UserPane userPane;
   private Server server;
+
+  private static Stage primaryStage;
 
   Connection connection;
 
@@ -27,6 +30,8 @@ public class Client extends Application {
 
   @Override
   public void start(Stage primaryStage) {
+    Client.primaryStage = primaryStage;
+
     wb = new Whiteboard();
     userPane = new UserPane();
     Setup setup = new Setup();
@@ -78,5 +83,9 @@ public class Client extends Application {
   private void joinConnection(String username, String serverName, String address) {
     connection = new Connection(username, serverName, address);
     connection.start();
+  }
+
+  public static Stage getStage() {
+    return primaryStage;
   }
 }
