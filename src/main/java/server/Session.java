@@ -2,6 +2,7 @@ package server;
 
 import remote.Action;
 import remote.ISession;
+import remote.Message;
 
 import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
@@ -77,5 +78,26 @@ class Session extends UnicastRemoteObject implements ISession, Unreferenced {
   @Override
   public void logout() throws RemoteException {
     unexportObject(this, true);
+  }
+
+  @Override
+  public List<Message> getMessages() throws RemoteException {
+    return null;
+  }
+
+  @Override
+  public void sendMessages(ArrayList<Message> messages) throws RemoteException {
+
+  }
+
+  @Override
+  public void kick(String username) throws RemoteException {
+    if (!isAdmin) return;
+    for (Session session : sessions) {
+      if (session.username.equals(username)) {
+        session.logout();
+        return;
+      }
+    }
   }
 }

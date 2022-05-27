@@ -15,4 +15,10 @@ public interface ISession extends Remote {
   List<String> getSessions() throws RemoteException;
 
   void logout() throws RemoteException;
+
+  List<Message> getMessages() throws RemoteException;
+
+  void sendMessages(ArrayList<Message> messages) throws RemoteException;
+
+  void kick(String username) throws RemoteException;
 }

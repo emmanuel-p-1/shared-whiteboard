@@ -29,20 +29,28 @@ public class Connection extends Thread {
 
   @Override
   public void run() {
+    long time = System.currentTimeMillis();
+
     while (!isInterrupted()) {
       try {
+        if (System.currentTimeMillis() - time >= 5000) {
+          for (String user : Client.kickUsers) {
+            remote.kick(user);
+          }
+          Client.addUsers(remote.getSessions());
+
+          time = System.currentTimeMillis();
+        }
+
         ArrayList<Action> copy = new ArrayList<>(Client.recentActions);
         Client.recentActions = new ArrayList<>();
         remote.sendActions(copy);
 
         Client.wb.processActions((ArrayList<Action>) remote.receiveActions());
 
-//        Client.addUsers(remote.getSessions());
-
         sleep(100);
       } catch (Exception e) {
         // Unhandled Exception
-        e.printStackTrace();
         interrupt();
       }
     }
