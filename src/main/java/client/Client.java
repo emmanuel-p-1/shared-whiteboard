@@ -29,7 +29,7 @@ public class Client extends Application {
   public void start(Stage primaryStage) {
     wb = new Whiteboard();
     userPane = new UserPane();
-    Login login = new Login();
+    Setup setup = new Setup();
 
     primaryStage.setTitle("Whiteboard Application");
 
@@ -41,12 +41,12 @@ public class Client extends Application {
 
     Scene main = new Scene(root);
 
-    primaryStage.setScene(login.getScene());
+    primaryStage.setScene(setup.getScene());
     primaryStage.show();
 
-    login.getCreate().setOnAction(e -> {
+    setup.getCreate().setOnAction(e -> {
       try {
-        startConnection(login.getUsername(), login.getServerName());
+        startConnection(setup.getUsername(), setup.getServerName());
         primaryStage.setScene(main);
         primaryStage.show();
         primaryStage.centerOnScreen();
@@ -56,8 +56,8 @@ public class Client extends Application {
       }
     });
 
-    login.getConnect().setOnAction(e -> {
-      joinConnection(login.getUsername(), login.getServerName(), login.getAddress());
+    setup.getConnect().setOnAction(e -> {
+      joinConnection(setup.getUsername(), setup.getServerName(), setup.getAddress());
       primaryStage.setScene(main);
       primaryStage.show();
       primaryStage.centerOnScreen();
@@ -70,7 +70,7 @@ public class Client extends Application {
 
   private void startConnection(String username, String serverName) throws AlreadyBoundException, RemoteException, UnknownHostException {
     server = new Server(serverName);
-    server.run();
+    server.run(username);
     connection = new Connection(username, serverName, Inet4Address.getLocalHost().getHostAddress());
     connection.start();
   }

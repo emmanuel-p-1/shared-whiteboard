@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
-public class Login {
+public class Setup {
   private final Scene scene;
   private final TextField username = new TextField();
   private final TextField serverName = new TextField();
@@ -14,7 +14,7 @@ public class Login {
   private final Button create = new Button("Create Server");
   private final Button connect = new Button("Connect to Server");
 
-  Login() {
+  Setup() {
     VBox layout = new VBox(10);
     scene = new Scene(layout, 400, 600);
 

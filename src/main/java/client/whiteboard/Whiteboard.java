@@ -14,7 +14,7 @@ import remote.Action;
 
 import java.util.ArrayList;
 
-class Whiteboard {
+public class Whiteboard {
   private final Canvas canvas = new Canvas(1000, 1000);
   private final Canvas editLayer = new Canvas(1000, 1000);
   private final TextField textLayer = new TextField();
@@ -51,7 +51,7 @@ class Whiteboard {
     }
   }
 
-  StackPane getCanvas() {
+  public StackPane getCanvas() {
     return canvasContainer;
   }
 
@@ -67,26 +67,26 @@ class Whiteboard {
     return new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths.DEFAULT));
   }
 
-  VBox getToolbox() {
+  public VBox getToolbox() {
     VBox box = new VBox(toolbox, toolProperties);
     box.setSpacing(50);
     return box;
   }
 
-  void draw(MouseEvent e) {
+  public void draw(MouseEvent e) {
     tool.useDragTool(editLayer, gc, e);
   }
 
-  void click(MouseEvent e) {
+  public void click(MouseEvent e) {
     tool.useClickTool(editLayer, gc, e);
     tool.useClickTool(textLayer, gc, e);
   }
 
-  void release(MouseEvent e) {
+  public void release(MouseEvent e) {
     tool.useReleaseTool(editLayer, gc, e);
   }
 
-  void addActionsToCanvas(ArrayList<Action> actions) {
+  public void addActionsToCanvas(ArrayList<Action> actions) {
     Paint paint = gc.getStroke();
     double lineWidth = gc.getLineWidth();
 
