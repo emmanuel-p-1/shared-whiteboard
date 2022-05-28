@@ -6,15 +6,8 @@ import client.GUI.whiteboard.Whiteboard;
 import client.connection.Connection;
 import javafx.application.Application;
 import javafx.application.Platform;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.ListCell;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Pane;
-import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 import remote.serializable.Action;
 import server.Server;
@@ -22,13 +15,12 @@ import server.Server;
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Client extends Application {
-  public static ArrayList<Action> recentActions = new ArrayList<>();
+  private ArrayList<Action> recentActions = new ArrayList<>();
 
   // UI sections
   private Whiteboard wb;
@@ -57,7 +49,7 @@ public class Client extends Application {
   }
 
   private void initialise() {
-    wb = new Whiteboard(this);
+    wb = new Whiteboard(this, recentActions);
     userPane = new UserPane(this);
 
     Setup setup = new Setup(this);
@@ -76,9 +68,15 @@ public class Client extends Application {
     setup.onServerSelect();
     setup.onJoin();
 
-    wb.getCanvas().setOnMouseDragged(wb::draw);
-    wb.getCanvas().setOnMousePressed(wb::click);
-    wb.getCanvas().setOnMouseReleased(wb::release);
+    wb.getCanvas().setOnMouseDragged(e -> {
+      wb.draw(e, recentActions);
+    });
+    wb.getCanvas().setOnMousePressed(e -> {
+      wb.click(e, recentActions);
+    });
+    wb.getCanvas().setOnMouseReleased(e -> {
+      wb.release(e, recentActions);
+    });
   }
 
   public void startConnection(String username, String serverName, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {

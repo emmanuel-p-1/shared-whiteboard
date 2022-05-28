@@ -17,17 +17,18 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public enum File {
   NEW {
     @Override
-    Node getNode(Canvas canvas, Stage stage) {
+    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
       Button btn = new Button("NEW");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
 
       btn.setOnAction(e -> {
-        Client.recentActions.add(new Action(File.NEW, null));
+        actions.add(new Action(File.NEW, null));
       });
 
       return btn;
@@ -35,7 +36,7 @@ public enum File {
   },
   OPEN {
     @Override
-    Node getNode(Canvas canvas, Stage stage) {
+    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
       Button btn = new Button("OPEN");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -49,7 +50,7 @@ public enum File {
           BufferedImage img = ImageIO.read(file);
           ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
           ImageIO.write(img, "png", byteArrayOutputStream);
-          Client.recentActions.add(new Action(File.OPEN, byteArrayOutputStream.toByteArray()));
+          actions.add(new Action(File.OPEN, byteArrayOutputStream.toByteArray()));
         } catch (IOException ex) {
           ex.printStackTrace();
         }
@@ -60,7 +61,7 @@ public enum File {
   },
   SAVE {
     @Override
-    Node getNode(Canvas canvas, Stage stage) {
+    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
       Button btn = new Button("SAVE");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -79,7 +80,7 @@ public enum File {
   },
   SAVE_AS {
     @Override
-    Node getNode(Canvas canvas, Stage stage) {
+    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
       Button btn = new Button("SAVE AS");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -94,7 +95,7 @@ public enum File {
 
   private static String filepath = null;
 
-  abstract Node getNode(Canvas canvas, Stage stage);
+  abstract Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions);
 
   private static void saveAs(Canvas canvas, Stage stage) {
     FileChooser fileChooser = new FileChooser();

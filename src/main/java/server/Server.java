@@ -23,14 +23,16 @@ public class Server {
   }
 
   public void run(String admin) throws RemoteException, AlreadyBoundException {
-    ILogin login = new Login(admin);
+    ILogin login = new Login(admin, this);
     registry = LocateRegistry.getRegistry(port);
     try {
       registry.bind(serverName, login);
-    } catch (ConnectException e) {
+    } catch (ConnectException | NoSuchObjectException e) {
+      System.out.println("create");
       registry = LocateRegistry.createRegistry(port);
       registry.bind(serverName, login);
     } catch (AlreadyBoundException e) {
+      System.out.println("rebind");
       registry.rebind(serverName, login);
     }
     System.err.println("server ready");
@@ -38,8 +40,10 @@ public class Server {
 
   public void closeConnection() throws RemoteException, NotBoundException {
     if (registry.list().length > 1) {
+      System.err.println("unbind");
       registry.unbind(serverName);
     } else {
+      System.err.println("unexport");
       UnicastRemoteObject.unexportObject(registry, true);
     }
   }

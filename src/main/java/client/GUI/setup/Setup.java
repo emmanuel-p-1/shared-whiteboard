@@ -121,8 +121,15 @@ public class Setup {
         for (String reg : registry.list()) {
           Button btn = new Button(reg);
           connectSelectPane.getChildren().add(btn);
+          btn.setMaxWidth(400);
+
           btn.setOnAction(ev -> {
             setServerName(reg);
+
+            connectPane.getChildren().addAll(username, joinServer);
+
+            connectPane.setAlignment(Pos.CENTER);
+            joinServer.setMaxWidth(400);
 
             client.getStage().setScene(connectScene);
             client.getStage().show();
@@ -133,6 +140,8 @@ public class Setup {
         // Unhandled Exception
         ev.printStackTrace();
       }
+
+      connectSelectPane.setAlignment(Pos.CENTER);
 
       client.getStage().setScene(connectSelectScene);
       client.getStage().show();
