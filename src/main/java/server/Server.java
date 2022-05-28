@@ -1,11 +1,9 @@
 package server;
 
-import remote.ILogin;
+import remote.rInterface.ILogin;
+import server.rInstance.Login;
 
-import java.rmi.AlreadyBoundException;
-import java.rmi.NoSuchObjectException;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
+import java.rmi.*;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
@@ -26,20 +24,23 @@ public class Server {
 
   public void run(String admin) throws RemoteException, AlreadyBoundException {
     ILogin login = new Login(admin);
-    registry = LocateRegistry.createRegistry(port);
-    registry.bind(serverName, login);
+    registry = LocateRegistry.getRegistry(port);
+    try {
+      registry.bind(serverName, login);
+    } catch (ConnectException e) {
+      registry = LocateRegistry.createRegistry(port);
+      registry.bind(serverName, login);
+    } catch (AlreadyBoundException e) {
+      registry.rebind(serverName, login);
+    }
     System.err.println("server ready");
   }
 
-  public String getServerName() {
-    return serverName;
-  }
-
-  public void unbind() throws NotBoundException, RemoteException {
-    registry.unbind(serverName);
-  }
-
-  public void closeRegistry() throws NoSuchObjectException {
-    UnicastRemoteObject.unexportObject(registry, true);
+  public void closeConnection() throws RemoteException, NotBoundException {
+    if (registry.list().length > 1) {
+      registry.unbind(serverName);
+    } else {
+      UnicastRemoteObject.unexportObject(registry, true);
+    }
   }
 }

@@ -1,6 +1,9 @@
 package client;
 
-import client.whiteboard.Whiteboard;
+import client.GUI.setup.Setup;
+import client.GUI.users.UserPane;
+import client.GUI.whiteboard.Whiteboard;
+import client.connection.Connection;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
@@ -13,29 +16,35 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
-import remote.Action;
+import remote.serializable.Action;
 import server.Server;
 
 import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Client extends Application {
   public static ArrayList<Action> recentActions = new ArrayList<>();
-  public static ArrayList<String> kickUsers = new ArrayList<>();
 
-  static Whiteboard wb;
-  static UserPane userPane;
+  // UI sections
+  private Whiteboard wb;
+  private UserPane userPane;
+
+  // Stage components
+  private Stage primaryStage;
+  private HBox root;
+  private Scene main;
+
   private Server server;
-
-  private static Stage primaryStage;
-
   private Connection connection;
+
+  public void setRecentActions(ArrayList<Action> actions) {
+    recentActions = actions;
+  }
 
   protected void startGUI(String[] args) {
     launch(args);
@@ -43,161 +52,93 @@ public class Client extends Application {
 
   @Override
   public void start(Stage primaryStage) {
-    Client.primaryStage = primaryStage;
+    this.primaryStage = primaryStage;
+    initialise();
+  }
 
-    wb = new Whiteboard();
-    userPane = new UserPane();
-    Setup setup = new Setup();
+  private void initialise() {
+    wb = new Whiteboard(this);
+    userPane = new UserPane(this);
+
+    Setup setup = new Setup(this);
 
     primaryStage.setTitle("Whiteboard Application");
 
-    HBox root = new HBox();
+    root = new HBox();
+    main = new Scene(root);
 
-    Scene main = new Scene(root);
+    setup.startup();
 
-    primaryStage.setScene(setup.getSelectScene());
-    primaryStage.show();
+    setup.onCreate();
+    setup.onLaunch();
 
-    setup.getCreate().setOnAction(e -> {
-      primaryStage.setScene(setup.getCreateScene());
-      primaryStage.show();
-      primaryStage.centerOnScreen();
-    });
-
-    setup.getCreateServer().setOnAction(e -> {
-      try {
-        startConnection(setup.getUsername(), setup.getServerName(), setup.getPort());
-      } catch (AlreadyBoundException | RemoteException | UnknownHostException ex) {
-        // Unhandled Exception
-        ex.printStackTrace();
-      }
-
-      root.getChildren().add(wb.getAdminToolbox());
-      root.getChildren().add(wb.getCanvas());
-      root.getChildren().add(userPane.getUserPane());
-
-      primaryStage.setScene(main);
-      primaryStage.show();
-      primaryStage.centerOnScreen();
-    });
-
-    setup.getConnect().setOnAction(e -> {
-      primaryStage.setScene(setup.getConnectServerScene());
-      primaryStage.show();
-      primaryStage.centerOnScreen();
-    });
-
-    setup.getConnectServer().setOnAction(e -> {
-      try {
-        Registry registry = LocateRegistry.getRegistry(setup.getAddress(), setup.getPort());
-        for (String reg : registry.list()) {
-          Button btn = new Button(reg);
-          setup.getConnectSelectPane().getChildren().add(btn);
-          btn.setOnAction(ev -> {
-            setup.setServerName(reg);
-
-            primaryStage.setScene(setup.getConnectScene());
-            primaryStage.show();
-            primaryStage.centerOnScreen();
-          });
-        }
-      } catch (RemoteException ev) {
-        // Unhandled Exception
-        ev.printStackTrace();
-      }
-
-      primaryStage.setScene(setup.getConnectSelectScene());
-      primaryStage.show();
-      primaryStage.centerOnScreen();
-    });
-
-    setup.getJoinServer().setOnAction(e -> {
-      joinConnection(setup.getUsername(), setup.getServerName(), setup.getAddress(), setup.getPort());
-
-      root.getChildren().add(wb.getToolbox());
-      root.getChildren().add(wb.getCanvas());
-      root.getChildren().add(userPane.getUserPane());
-
-      primaryStage.setScene(main);
-      primaryStage.show();
-      primaryStage.centerOnScreen();
-    });
+    setup.onConnect();
+    setup.onServerSelect();
+    setup.onJoin();
 
     wb.getCanvas().setOnMouseDragged(wb::draw);
     wb.getCanvas().setOnMousePressed(wb::click);
     wb.getCanvas().setOnMouseReleased(wb::release);
   }
 
-  private void startConnection(String username, String serverName, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {
+  public void startConnection(String username, String serverName, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {
     server = new Server(serverName, port);
     server.run(username);
-    connection = new Connection(username, serverName, Inet4Address.getLocalHost().getHostAddress(), port);
+    connection = new Connection(this, username, serverName, Inet4Address.getLocalHost().getHostAddress(), port);
     connection.start();
   }
 
-  private void joinConnection(String username, String serverName, String address, int port) {
-    connection = new Connection(username, serverName, address, port);
+  public void joinConnection(String username, String serverName, String address, int port) {
+    connection = new Connection(this, username, serverName, address, port);
     connection.start();
   }
 
-  public static Stage getStage() {
+  public Stage getStage() {
     return primaryStage;
   }
 
-//  public static void addUsers(List<String> users) {
-//    GridPane userGrid = userPane.getUsers();
-//    for (int i = 0; i < users.size(); i++) {
-//      userGrid.add(new Label(users.get(i)), 0, i);
-//      userGrid.add(new Button("X"), 1, i);
-//    }
-//  }
-  public static void addUsers(List<String> users) {
+  public HBox getRoot() {
+    return root;
+  }
+
+  public Scene getMain() {
+    return main;
+  }
+
+  public Whiteboard getWhiteboard() {
+    return wb;
+  }
+
+  public UserPane getUserPane() {
+    return userPane;
+  }
+
+  public ArrayList<Action> getRecentActions() {
+    return recentActions;
+  }
+
+  public Connection getConnection() {
+    return connection;
+  }
+
+  public void addUsers(List<String> users) {
     Platform.runLater(() -> {
-      UserPane.getUsers().setItems(null);
-      ObservableList<String> list = FXCollections.observableArrayList(users);
-      UserPane.getUsers().setItems(list);
-      UserPane.getUsers().setCellFactory(stringListView -> new UserCell());
+      userPane.updateUsers(users);
     });
+  }
+
+  public void restart() {
+    connection = null;
+    Platform.runLater(this::initialise);
   }
 
   @Override
   public void stop() throws Exception {
-    connection.closeConnection();
-    server.closeRegistry();
-//    Platform.exit();
-//    System.exit(0);
-  }
-
-  private static class UserCell extends ListCell<String> {
-    HBox hbox = new HBox();
-    Label label = new Label();
-    Pane pane = new Pane();
-    Button button = new Button("X");
-
-    public UserCell() {
-      super();
-
-      hbox.getChildren().addAll(label, pane, button);
-      HBox.setHgrow(pane, Priority.ALWAYS);
-      button.setOnAction(event -> kickUsers.add(getItem()));
+    if (connection != null) {
+      connection.closeConnection();
     }
-
-    @Override
-    protected void updateItem(String item, boolean empty) {
-      super.updateItem(item, empty);
-      setText(null);
-      setGraphic(null);
-
-      if (item != null && !empty) {
-        label.setText(item);
-        setGraphic(hbox);
-      }
+    if (server != null) {
+      server.closeConnection();
     }
-  }
-
-  public void addMessage(String message) {
-    Platform.runLater(() -> {
-      UserPane.getOutput().appendText("\n" + message);
-    });
   }
 }
