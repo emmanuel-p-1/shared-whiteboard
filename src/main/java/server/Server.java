@@ -13,33 +13,31 @@ public class Server {
   private final int port;
   private Registry registry;
 
+  private final Data data = new Data();
+
   public Server(String serverName, int port) {
     this.serverName = serverName;
     this.port = port;
   }
 
   public void run(String admin) throws RemoteException, AlreadyBoundException {
-    ILogin login = new Login(admin);
+    ILogin login = new Login(admin, data);
     registry = LocateRegistry.getRegistry(port);
     try {
       registry.bind(serverName, login);
     } catch (ConnectException | NoSuchObjectException e) {
-      System.out.println("create");
       registry = LocateRegistry.createRegistry(port);
       registry.bind(serverName, login);
     } catch (AlreadyBoundException e) {
       // Unhandled Exception
       e.printStackTrace();
     }
-    System.err.println("server ready");
   }
 
   public void closeConnection() throws RemoteException, NotBoundException {
     if (registry.list().length > 1) {
-      System.err.println("unbind");
       registry.unbind(serverName);
     } else {
-      System.err.println("unexport");
       UnicastRemoteObject.unexportObject(registry, true);
     }
   }

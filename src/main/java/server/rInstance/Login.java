@@ -2,30 +2,28 @@ package server.rInstance;
 
 import remote.rInterface.ILogin;
 import remote.rInterface.ISession;
+import server.Data;
 
 import javax.security.auth.login.LoginException;
-import java.rmi.NoSuchObjectException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.rmi.server.Unreferenced;
-import java.util.ArrayList;
 
 public class Login extends UnicastRemoteObject implements ILogin {
-  private final ArrayList<String> users;
   private final String admin;
+  private final Data data;
 
-  public Login(String admin) throws RemoteException {
-    users = new ArrayList<>();
+  public Login(String admin, Data data) throws RemoteException {
     this.admin = admin;
+    this.data = data;
   }
 
   @Override
   public ISession login(String username) throws LoginException, RemoteException {
-    if (users.contains(username)) {
+    if (data.hasUsername(username)) {
       throw new LoginException("Username taken.");
     }
-    users.add(username);
-    if (username.equals(admin)) return new Session(username, true);
-    return new Session(username,false);
+    data.addUsername(username);
+    if (username.equals(admin)) return new Session(username, true, data);
+    return new Session(username,false, data);
   }
 }

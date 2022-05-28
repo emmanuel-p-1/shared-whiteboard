@@ -17,18 +17,17 @@ import java.awt.image.BufferedImage;
 import java.awt.image.RenderedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.ArrayList;
 
 public enum File {
   NEW {
     @Override
-    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
+    Node getNode(Canvas canvas, Stage stage) {
       Button btn = new Button("NEW");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
 
       btn.setOnAction(e -> {
-        actions.add(new Action(File.NEW, null));
+        Client.addAction(new Action(File.NEW, null));
       });
 
       return btn;
@@ -36,7 +35,7 @@ public enum File {
   },
   OPEN {
     @Override
-    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
+    Node getNode(Canvas canvas, Stage stage) {
       Button btn = new Button("OPEN");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -44,13 +43,16 @@ public enum File {
       btn.setOnAction(e -> {
         FileChooser fileChooser = new FileChooser();
         java.io.File file = fileChooser.showOpenDialog(stage);
+
+        if (file == null) return;
+
         File.filepath = file.getPath();
 
         try {
           BufferedImage img = ImageIO.read(file);
           ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
           ImageIO.write(img, "png", byteArrayOutputStream);
-          actions.add(new Action(File.OPEN, byteArrayOutputStream.toByteArray()));
+          Client.addAction(new Action(File.OPEN, byteArrayOutputStream.toByteArray()));
         } catch (IOException ex) {
           ex.printStackTrace();
         }
@@ -61,7 +63,7 @@ public enum File {
   },
   SAVE {
     @Override
-    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
+    Node getNode(Canvas canvas, Stage stage) {
       Button btn = new Button("SAVE");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -80,7 +82,7 @@ public enum File {
   },
   SAVE_AS {
     @Override
-    Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions) {
+    Node getNode(Canvas canvas, Stage stage) {
       Button btn = new Button("SAVE AS");
       btn.setMaxWidth(Double.MAX_VALUE);
       btn.setPrefHeight(40);
@@ -95,7 +97,7 @@ public enum File {
 
   private static String filepath = null;
 
-  abstract Node getNode(Canvas canvas, Stage stage, ArrayList<Action> actions);
+  abstract Node getNode(Canvas canvas, Stage stage);
 
   private static void saveAs(Canvas canvas, Stage stage) {
     FileChooser fileChooser = new FileChooser();
@@ -105,6 +107,9 @@ public enum File {
     fileChooser.getExtensionFilters().add(extensionFilter);
 
     java.io.File file = fileChooser.showSaveDialog(stage);
+
+    if (file == null) return;
+
     File.filepath = file.getPath();
 
     save(canvas, file);

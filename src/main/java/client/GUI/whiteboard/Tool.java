@@ -9,46 +9,44 @@ import javafx.scene.shape.StrokeLineCap;
 import javafx.scene.text.Font;
 import remote.serializable.Action;
 
-import java.util.ArrayList;
-
 public enum Tool {
   PAINT {
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
-      actions.add(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      Client.addAction(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
-      actions.add(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
+      Client.addAction(new Action(Tool.PAINT, e.getX(), e.getY(), gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   ERASE {
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       double x = e.getX() - (gc.getLineWidth() / 2);
       double y = e.getY() - (gc.getLineWidth() / 2);
-      actions.add(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
+      Client.addAction(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       double x = e.getX() - (gc.getLineWidth() / 2);
       double y = e.getY() - (gc.getLineWidth() / 2);
-      actions.add(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
+      Client.addAction(new Action(Tool.ERASE, x, y, gc.getLineWidth()));
     }
   },
   LINE {
     double x, y;
 
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
       edit.setStroke(gc.getStroke());
@@ -59,23 +57,23 @@ public enum Tool {
     }
 
     @Override
-    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-      actions.add(new Action(Tool.LINE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
+      Client.addAction(new Action(Tool.LINE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   CIRCLE {
     double x, y;
 
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
       edit.setStroke(gc.getStroke());
@@ -94,7 +92,7 @@ public enum Tool {
     }
 
     @Override
-    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
 
@@ -105,20 +103,20 @@ public enum Tool {
 
       double width = bottomRightX - topLeftX;
       double height = bottomRightY - topLeftY;
-      actions.add(new Action(Tool.CIRCLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
+      Client.addAction(new Action(Tool.CIRCLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   TRIANGLE {
     double x, y;
 
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
       edit.setStroke(gc.getStroke());
@@ -131,23 +129,23 @@ public enum Tool {
     }
 
     @Override
-    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-      actions.add(new Action(Tool.TRIANGLE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
+      Client.addAction(new Action(Tool.TRIANGLE, e.getX(), e.getY(), x, y, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   RECTANGLE {
     double x, y;
 
     @Override
-    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       x = e.getX();
       y = e.getY();
     }
 
     @Override
-    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
       edit.setLineWidth(gc.getLineWidth());
       edit.setStroke(gc.getStroke());
@@ -166,7 +164,7 @@ public enum Tool {
     }
 
     @Override
-    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {
       GraphicsContext edit = editLayer.getGraphicsContext2D();
 
       double topLeftX = Math.min(x, e.getX());
@@ -178,12 +176,12 @@ public enum Tool {
       double height = bottomRightY - topLeftY;
 
       edit.clearRect(0, 0, editLayer.getWidth(), editLayer.getHeight());
-      actions.add(new Action(Tool.RECTANGLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
+      Client.addAction(new Action(Tool.RECTANGLE, topLeftX, topLeftY, width, height, gc.getLineWidth(), gc.getStroke().toString()));
     }
   },
   TEXT {
     @Override
-    void useClickTool(TextField text, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {
+    void useClickTool(TextField text, GraphicsContext gc, MouseEvent e) {
       double textSize = gc.getLineWidth();
       double posX = e.getX() + (textSize / 2);
       double posY = e.getY() + (textSize / 2);
@@ -197,17 +195,17 @@ public enum Tool {
       text.requestFocus();
 
       text.setOnAction(ev -> {
-        actions.add(new Action(Tool.TEXT, text.getText(), posX, posY, textSize, gc.getStroke().toString()));
+        Client.addAction(new Action(Tool.TEXT, text.getText(), posX, posY, textSize, gc.getStroke().toString()));
         text.setVisible(false);
       });
     }
   };
 
-  void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {}
+  void useDragTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 
-  void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {}
+  void useClickTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 
-  void useClickTool(TextField textLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {}
+  void useClickTool(TextField textLayer, GraphicsContext gc, MouseEvent e) {}
 
-  void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e, ArrayList<Action> actions) {}
+  void useReleaseTool(Canvas editLayer, GraphicsContext gc, MouseEvent e) {}
 }

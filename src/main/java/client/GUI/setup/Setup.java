@@ -1,8 +1,6 @@
 package client.GUI.setup;
 
 import client.Client;
-import client.GUI.users.UserPane;
-import client.GUI.whiteboard.Whiteboard;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -94,6 +92,7 @@ public class Setup {
       client.getRoot().getChildren().add(client.getUserPane().getUserPane());
 
       client.getUserPane().sendMessage();
+      client.getUserPane().onDisconnect();
 
       client.getStage().setScene(client.getMain());
       client.getStage().show();

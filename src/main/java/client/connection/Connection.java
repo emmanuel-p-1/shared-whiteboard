@@ -17,16 +17,19 @@ public class Connection extends Thread {
   private final Client client;
   private final String serverName;
   private final String username;
+  private final String address;
+  private final int port;
 
   public Connection(Client client, String username, String serverName, String address, int port) {
     this.client = client;
     this.serverName = serverName;
     this.username = username;
+    this.address = address;
+    this.port = port;
 
     try {
       Registry registry = LocateRegistry.getRegistry(address, port);
       remote = ((ILogin) registry.lookup(serverName)).login(username);
-      System.err.println("connected");
     } catch (LoginException e) {
       // Unhandled Exception
       System.out.println(e.getMessage());
@@ -48,8 +51,8 @@ public class Connection extends Thread {
           time = System.currentTimeMillis();
         }
 
-        ArrayList<Action> copy = new ArrayList<>(client.getRecentActions());
-        client.setRecentActions(new ArrayList<>());
+        ArrayList<Action> copy = new ArrayList<>(Client.getActions());
+        client.clearRecentActions();
         remote.sendActions(copy);
 
         client.getWhiteboard().processActions((ArrayList<Action>) remote.receiveActions());
@@ -79,5 +82,13 @@ public class Connection extends Thread {
 
   public String getUsername() {
     return  username;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public int getPort() {
+    return port;
   }
 }

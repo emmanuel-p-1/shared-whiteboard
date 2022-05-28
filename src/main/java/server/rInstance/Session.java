@@ -3,18 +3,17 @@ package server.rInstance;
 import remote.serializable.Action;
 import remote.rInterface.ISession;
 import remote.serializable.Message;
+import server.Data;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 public class Session extends UnicastRemoteObject implements ISession, Unreferenced {
-  private static ArrayList<Action> allActions = new ArrayList<>();
-  private static ArrayList<Message> allMessages = new ArrayList<>();
-
-  private static ArrayList<Session> sessions = new ArrayList<>();
+  private final Data data;
 
   private final ArrayList<Action> actions;
   private final ArrayList<Message> messages;
@@ -25,20 +24,24 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
   private final String username;
   private final boolean isAdmin;
 
-  protected Session(String username, boolean isAdmin) throws RemoteException {
-    sessions.add(this);
+  protected Session(String username, boolean isAdmin, Data data) throws RemoteException {
+    data.addSession(this);
+
     actions = new ArrayList<>();
     messages = new ArrayList<>();
+
     this.username = username;
     this.isAdmin = isAdmin;
+
+    this.data = data;
   }
 
   @Override
   public void unreferenced() {
     try {
-      sessions.remove(this);
+      close();
+      data.removeSession(this);
       unexportObject(this, true);
-      reset();
     } catch (RemoteException e) {
       // Unhandled Exception
       e.printStackTrace();
@@ -47,7 +50,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public ArrayList<Action> receiveActions() throws RemoteException {
-    // TODO: Turn into synchronized
+    ArrayList<Action> allActions = data.getActions();
+
     List<Action> subList = new ArrayList<>(allActions.subList(actionIndex, allActions.size()));
     ArrayList<Action> unperformedActions = new ArrayList<>(subList);
 
@@ -61,8 +65,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
   @Override
   public void sendActions(ArrayList<Action> actions) throws RemoteException {
     for (Action action : actions) {
-      if (isAdmin && action.getTool() == null) allActions.add(action);
-      if (action.getTool() != null) allActions.add(action);
+      if (isAdmin && action.getTool() == null) data.addAction(action);
+      if (action.getTool() != null) data.addAction(action);
     }
   }
 
@@ -73,25 +77,19 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public ArrayList<String> getSessions() throws RemoteException {
-    ArrayList<String> usernames = new ArrayList<>();
-
-    sessions.forEach(s -> {
-      usernames.add(s.username);
-    });
-
-    return usernames;
+    return data.getUsernames();
   }
 
   @Override
   public void logout() throws RemoteException {
-    sessions.remove(this);
-    unexportObject(this, true);
-    reset();
+    close();
+    data.removeSession(this);
   }
 
   @Override
   public ArrayList<Message> getMessages() throws RemoteException {
-    // TODO: Turn into synchronized
+    ArrayList<Message> allMessages = data.getMessages();
+
     List<Message> subList = new ArrayList<>(allMessages.subList(messageIndex, allMessages.size()));
     ArrayList<Message> unsentMessages = new ArrayList<>(subList);
 
@@ -104,13 +102,15 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public void sendMessage(Message message) throws RemoteException {
-    // TODO: Turn into synchronized
-    allMessages.add(message);
+    data.addMessage(message);
   }
 
   @Override
   public void kick(String username) throws RemoteException {
     if (!isAdmin) return;
+
+    ArrayList<Session> sessions = data.getSessions();
+
     for (Session session : sessions) {
       if (session.username.equals(username)) {
         session.logout();
@@ -119,11 +119,15 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
-  private void reset() {
+  private void close() throws RemoteException {
     if (!isAdmin) return;
-    allActions = new ArrayList<>();
-    allMessages = new ArrayList<>();
-    sessions = new ArrayList<>();
-    // server.closeConnection()
+
+    ArrayList<Session> sessions = data.getSessions();
+
+    Iterator<Session> is = sessions.iterator();
+    while (is.hasNext()) {
+      Session s = is.next();
+      if (!s.isAdmin) s.logout();
+    }
   }
 }

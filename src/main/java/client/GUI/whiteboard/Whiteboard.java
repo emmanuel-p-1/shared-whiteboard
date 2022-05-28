@@ -35,7 +35,7 @@ public class Whiteboard {
 
   private Tool tool = Tool.PAINT;
 
-  public Whiteboard(Client client, ArrayList<Action> actions) {
+  public Whiteboard(Client client) {
     canvasContainer.setBorder(getBorder());
     toolbox.setFillWidth(true);
     textLayer.setVisible(false);
@@ -60,7 +60,7 @@ public class Whiteboard {
     }
 
     for (File file : File.values()) {
-      options.getChildren().add(file.getNode(canvas, client.getStage(), actions));
+      options.getChildren().add(file.getNode(canvas, client.getStage()));
     }
   }
 
@@ -89,17 +89,17 @@ public class Whiteboard {
     return box;
   }
 
-  public void draw(MouseEvent e, ArrayList<Action> actions) {
-    tool.useDragTool(editLayer, gc, e, actions);
+  public void draw(MouseEvent e) {
+    tool.useDragTool(editLayer, gc, e);
   }
 
-  public void click(MouseEvent e, ArrayList<Action> actions) {
-    tool.useClickTool(editLayer, gc, e, actions);
-    tool.useClickTool(textLayer, gc, e, actions);
+  public void click(MouseEvent e) {
+    tool.useClickTool(editLayer, gc, e);
+    tool.useClickTool(textLayer, gc, e);
   }
 
-  public void release(MouseEvent e, ArrayList<Action> actions) {
-    tool.useReleaseTool(editLayer, gc, e, actions);
+  public void release(MouseEvent e) {
+    tool.useReleaseTool(editLayer, gc, e);
   }
 
   public void processActions(ArrayList<Action> actions) {
