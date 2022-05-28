@@ -28,8 +28,8 @@ public class Server {
       registry = LocateRegistry.createRegistry(port);
       registry.bind(serverName, login);
     } catch (AlreadyBoundException e) {
-      System.out.println("rebind");
-      registry.rebind(serverName, login);
+      // Unhandled Exception
+      e.printStackTrace();
     }
     System.err.println("server ready");
   }
