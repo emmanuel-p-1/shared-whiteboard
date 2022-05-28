@@ -18,12 +18,8 @@ public class Server {
     this.port = port;
   }
 
-  public static void main(String[] args) throws AlreadyBoundException, RemoteException {
-    new Server(args[0], Integer.parseInt(args[1])).run("admin");
-  }
-
   public void run(String admin) throws RemoteException, AlreadyBoundException {
-    ILogin login = new Login(admin, this);
+    ILogin login = new Login(admin);
     registry = LocateRegistry.getRegistry(port);
     try {
       registry.bind(serverName, login);

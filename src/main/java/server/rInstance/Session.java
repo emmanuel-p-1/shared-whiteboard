@@ -3,9 +3,7 @@ package server.rInstance;
 import remote.serializable.Action;
 import remote.rInterface.ISession;
 import remote.serializable.Message;
-import server.Server;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
@@ -27,15 +25,12 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
   private final String username;
   private final boolean isAdmin;
 
-  private final Server server;
-
-  protected Session(String username, boolean isAdmin, Server server) throws RemoteException {
+  protected Session(String username, boolean isAdmin) throws RemoteException {
     sessions.add(this);
     actions = new ArrayList<>();
     messages = new ArrayList<>();
     this.username = username;
     this.isAdmin = isAdmin;
-    this.server = server;
   }
 
   @Override
@@ -126,14 +121,9 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   private void reset() {
     if (!isAdmin) return;
-    try {
-      allActions = new ArrayList<>();
-      allMessages = new ArrayList<>();
-      sessions = new ArrayList<>();
-      server.closeConnection();
-    } catch (RemoteException | NotBoundException e) {
-      // Unhandled Exception
-      e.printStackTrace();
-    }
+    allActions = new ArrayList<>();
+    allMessages = new ArrayList<>();
+    sessions = new ArrayList<>();
+    // server.closeConnection()
   }
 }
