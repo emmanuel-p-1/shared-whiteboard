@@ -4,9 +4,13 @@ import client.Client;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
+import java.net.Inet4Address;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
 import java.rmi.RemoteException;
@@ -14,149 +18,192 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 
 public class Setup {
-  private final VBox selectPane = new VBox(10);
-  private final Scene selectScene = new Scene(selectPane, 400, 600);
-  private final Button create = new Button("Create new Server");
-  private final Button connect = new Button("Connect to Server");
+  private final VBox networkSelectPane = new VBox(10);
+  private final Scene networkSelectScene = new Scene(networkSelectPane, 400, 600);
+  private final Button joinLocalButton = new Button("Use Local Host");
+  private final Button joinRemoteButton = new Button("Join Remote Host");
 
-  private final VBox createPane = new VBox(10);
-  private final Scene createScene = new Scene(createPane, 400, 600);
-  private final Button createServer = new Button("Create Server");
-  // Include fields for: username (admin), server name, port
+  private final VBox localServerPane = new VBox(10);
+  private final Scene localServerScene = new Scene(localServerPane, 400, 600);
+  private final Button localServerButton = new Button("Connect");
 
-  private final VBox connectServerPane = new VBox(10);
-  private final Scene connectServerScene = new Scene(connectServerPane, 400, 600);
-  private final Button connectServer = new Button("Connect to Server");
-  // Include fields for: address, port
+  private final VBox remoteServerPane = new VBox(10);
+  private final Scene remoteServerScene = new Scene(remoteServerPane, 400, 600);
+  private final Button remoteServerButton = new Button("Connect");
 
-  private final VBox connectSelectPane = new VBox(10);
-  private final Scene connectSelectScene = new Scene(connectSelectPane, 400, 600);
-  // Server names appear as buttons
+  private final VBox selectNamePane = new VBox(10);
+  private final Scene selectNameScene = new Scene(selectNamePane, 400, 600);
+  private final Button selectNameButton = new Button("Add New");
 
-  private final VBox connectPane = new VBox(10);
-  private final Scene connectScene = new Scene(connectPane, 400, 600);
-  private final Button joinServer = new Button("Connect to Server");
-  // Include fields for: username
+  private final VBox newServerPane = new VBox(10);
+  private final Scene newServerScene = new Scene(newServerPane, 400, 600);
+  private final Button newServerButton = new Button("Create");
+
+  private final VBox usernamePane = new VBox(10);
+  private final Scene usernameScene = new Scene(usernamePane, 400, 600);
+  private final Button joinServer = new Button("Join");
 
   private final TextField username = new TextField();
+  private final HBox userBox = new HBox(new Label("Username: "), username);
   private final TextField serverName = new TextField();
+  private final HBox serverBox = new HBox(new Label("Whiteboard Name: "), serverName);
   private final TextField address = new TextField();
+  private final HBox addressBox = new HBox(new Label("IP Address: "), address);
   private final TextField port = new TextField();
+  private final HBox portBox = new HBox(new Label("Port: "), port);
 
   private final Client client;
+  private boolean newServer = false;
 
   public Setup(Client client) {
     this.client = client;
-
-    username.setPromptText("Username");
-    serverName.setPromptText("Server Name");
-    address.setPromptText("IP Address");
-    port.setPromptText("Port");
   }
 
   public void startup() {
-    selectPane.getChildren().addAll(create, connect);
+    networkSelectPane.getChildren().addAll(joinLocalButton, joinRemoteButton);
 
-    selectPane.setAlignment(Pos.CENTER);
-    create.setMaxWidth(400);
-    connect.setMaxWidth(400);
+    networkSelectPane.setAlignment(Pos.CENTER);
+    joinLocalButton.setMaxWidth(400);
+    joinRemoteButton.setMaxWidth(400);
 
-    client.getStage().setScene(selectScene);
+    client.getStage().setScene(networkSelectScene);
     client.getStage().show();
+    client.getStage().centerOnScreen();
   }
 
-  public void onCreate() {
-    create.setOnAction(e -> {
-      createPane.getChildren().addAll(username, serverName, port, createServer);
-
-      createPane.setAlignment(Pos.CENTER);
-      createServer.setMaxWidth(400);
-
-      client.getStage().setScene(createScene);
-      client.getStage().show();
-      client.getStage().centerOnScreen();
-    });
-  }
-
-  public void onLaunch() {
-    createServer.setOnAction(e -> {
+  public void onJoinLocalHost() {
+    joinLocalButton.setOnAction(e -> {
       try {
-        client.startConnection(getUsername(), getServerName(), getPort());
-      } catch (AlreadyBoundException | RemoteException | UnknownHostException ex) {
+        address.setText(Inet4Address.getLocalHost().getHostAddress());
+      } catch (UnknownHostException ex) {
         // Unhandled Exception
         ex.printStackTrace();
       }
 
-      client.getRoot().getChildren().add(client.getWhiteboard().getAdminToolbox());
+      localServerPane.getChildren().addAll(portBox, localServerButton);
+
+      HBox.setHgrow(port, Priority.ALWAYS);
+      portBox.setMaxWidth(300);
+
+      localServerPane.setAlignment(Pos.CENTER);
+      localServerButton.setMaxWidth(400);
+
+      client.getStage().setScene(localServerScene);
+      client.getStage().show();
+    });
+  }
+
+  public void onJoinRemoteHost() {
+    joinRemoteButton.setOnAction(e -> {
+      remoteServerPane.getChildren().addAll(addressBox, portBox, remoteServerButton);
+
+      HBox.setHgrow(address, Priority.ALWAYS);
+      HBox.setHgrow(port, Priority.ALWAYS);
+      portBox.setMaxWidth(300);
+      addressBox.setMaxWidth(300);
+
+      remoteServerPane.setAlignment(Pos.CENTER);
+      remoteServerButton.setMaxWidth(400);
+
+      client.getStage().setScene(remoteServerScene);
+      client.getStage().show();
+    });
+  }
+
+  public void onRegistrySelect() {
+    localServerButton.setOnAction(e -> {
+      showRegistry();
+    });
+
+    remoteServerButton.setOnAction(e -> {
+      showRegistry();
+    });
+  }
+
+  public void showRegistry() {
+    try {
+      Registry registry = LocateRegistry.getRegistry(getAddress(), getPort());
+      for (String reg : registry.list()) {
+        Button btn = new Button(reg);
+        selectNamePane.getChildren().add(btn);
+        btn.setMaxWidth(400);
+
+        btn.setOnAction(ev -> {
+          newServer = false;
+          setServerName(reg);
+          onUserCreate();
+        });
+      }
+    } catch (RemoteException ev) {
+      // Unhandled Exception
+    }
+
+    selectNamePane.getChildren().add(selectNameButton);
+
+    selectNamePane.setAlignment(Pos.CENTER);
+    selectNameButton.setMaxWidth(400);
+
+    client.getStage().setScene(selectNameScene);
+    client.getStage().show();
+  }
+
+  public void onNewRegistry() {
+    selectNameButton.setOnAction(e -> {
+      newServer = true;
+
+      newServerPane.getChildren().addAll(serverBox, newServerButton);
+
+      HBox.setHgrow(serverName, Priority.ALWAYS);
+      serverBox.setMaxWidth(300);
+
+      newServerPane.setAlignment(Pos.CENTER);
+      newServerButton.setMaxWidth(400);
+
+      client.getStage().setScene(newServerScene);
+      client.getStage().show();
+    });
+  }
+
+  public void onNewServer() {
+    newServerButton.setOnAction(e -> {
+      onUserCreate();
+    });
+  }
+
+  public void onUserCreate() {
+    usernamePane.getChildren().addAll(userBox, joinServer);
+
+    HBox.setHgrow(username, Priority.ALWAYS);
+    userBox.setMaxWidth(300);
+
+    usernamePane.setAlignment(Pos.CENTER);
+    joinServer.setMaxWidth(400);
+
+    client.getStage().setScene(usernameScene);
+    client.getStage().show();
+  }
+
+  public void onJoinServer() {
+    joinServer.setOnAction(e -> {
+      if (newServer) {
+        // TODO: add ip address
+        try {
+          client.startConnection(getUsername(), getServerName(), getAddress(), getPort());
+          client.getRoot().getChildren().add(client.getWhiteboard().getAdminToolbox());
+        } catch (AlreadyBoundException | RemoteException | UnknownHostException ex) {
+          // Unhandled Exception
+          ex.printStackTrace();
+        }
+      } else {
+        client.joinConnection(getUsername(), getServerName(), getAddress(), getPort());
+        client.getRoot().getChildren().add(client.getWhiteboard().getToolbox());
+      }
+
       client.getRoot().getChildren().add(client.getWhiteboard().getCanvas());
       client.getRoot().getChildren().add(client.getUserPane().getUserPane());
 
       client.getUserPane().sendMessage();
       client.getUserPane().onDisconnect();
-
-      client.getStage().setScene(client.getMain());
-      client.getStage().show();
-      client.getStage().centerOnScreen();
-    });
-  }
-
-  public void onConnect() {
-    connect.setOnAction(e -> {
-      connectServerPane.getChildren().addAll(address, port, connectServer);
-
-      connectServerPane.setAlignment(Pos.CENTER);
-      connectServer.setMaxWidth(400);
-
-      client.getStage().setScene(connectServerScene);
-      client.getStage().show();
-      client.getStage().centerOnScreen();
-    });
-  }
-
-  public void onServerSelect() {
-    connectServer.setOnAction(e -> {
-      try {
-        Registry registry = LocateRegistry.getRegistry(getAddress(), getPort());
-        for (String reg : registry.list()) {
-          Button btn = new Button(reg);
-          connectSelectPane.getChildren().add(btn);
-          btn.setMaxWidth(400);
-
-          btn.setOnAction(ev -> {
-            setServerName(reg);
-
-            connectPane.getChildren().addAll(username, joinServer);
-
-            connectPane.setAlignment(Pos.CENTER);
-            joinServer.setMaxWidth(400);
-
-            client.getStage().setScene(connectScene);
-            client.getStage().show();
-            client.getStage().centerOnScreen();
-          });
-        }
-      } catch (RemoteException ev) {
-        // Unhandled Exception
-        ev.printStackTrace();
-      }
-
-      connectSelectPane.setAlignment(Pos.CENTER);
-
-      client.getStage().setScene(connectSelectScene);
-      client.getStage().show();
-      client.getStage().centerOnScreen();
-    });
-  }
-
-  public void onJoin() {
-    joinServer.setOnAction(e -> {
-      client.joinConnection(getUsername(), getServerName(), getAddress(), getPort());
-
-      client.getRoot().getChildren().add(client.getWhiteboard().getToolbox());
-      client.getRoot().getChildren().add(client.getWhiteboard().getCanvas());
-      client.getRoot().getChildren().add(client.getUserPane().getUserPane());
-
-      client.getUserPane().sendMessage();
 
       client.getStage().setScene(client.getMain());
       client.getStage().show();

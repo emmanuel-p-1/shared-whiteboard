@@ -92,26 +92,22 @@ public class Client extends Application {
 
     setup.startup();
 
-    setup.onCreate();
-    setup.onLaunch();
+    setup.onJoinLocalHost();
+    setup.onJoinRemoteHost();
 
-    setup.onConnect();
-    setup.onServerSelect();
-    setup.onJoin();
+    setup.onRegistrySelect();
+    setup.onNewRegistry();
+    setup.onNewServer();
 
-    wb.getCanvas().setOnMouseDragged(e -> {
-      wb.draw(e);
-    });
-    wb.getCanvas().setOnMousePressed(e -> {
-      wb.click(e);
-    });
-    wb.getCanvas().setOnMouseReleased(e -> {
-      wb.release(e);
-    });
+    setup.onJoinServer();
+
+    wb.getCanvas().setOnMouseDragged(wb::draw);
+    wb.getCanvas().setOnMousePressed(wb::click);
+    wb.getCanvas().setOnMouseReleased(wb::release);
   }
 
-  public void startConnection(String username, String serverName, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {
-    server = new Server(serverName, port);
+  public void startConnection(String username, String serverName, String address, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {
+    server = new Server(serverName, address, port);
     server.run(username);
     connection = new Connection(this, username, serverName, Inet4Address.getLocalHost().getHostAddress(), port);
     connection.start();
