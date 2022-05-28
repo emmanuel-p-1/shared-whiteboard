@@ -122,5 +122,12 @@ public class Data {
     } finally {
       sessionLock.writeLock().unlock();
     }
+
+    userLock.writeLock().lock();
+    try {
+      usernames.remove(session.getUsername());
+    } finally {
+      userLock.writeLock().unlock();
+    }
   }
 }

@@ -36,6 +36,10 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     this.data = data;
   }
 
+  public String getUsername() {
+    return username;
+  }
+
   @Override
   public void unreferenced() {
     try {
@@ -84,6 +88,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
   public void logout() throws RemoteException {
     close();
     data.removeSession(this);
+    unexportObject(this, true);
   }
 
   @Override
