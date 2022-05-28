@@ -10,23 +10,13 @@ import java.rmi.server.UnicastRemoteObject;
 import java.rmi.server.Unreferenced;
 import java.util.ArrayList;
 
-public class Login extends UnicastRemoteObject implements ILogin, Unreferenced {
+public class Login extends UnicastRemoteObject implements ILogin {
   private final ArrayList<String> users;
   private final String admin;
 
   public Login(String admin) throws RemoteException {
     users = new ArrayList<>();
     this.admin = admin;
-  }
-
-  @Override
-  public void unreferenced() {
-    try {
-      unexportObject(this, true);
-    } catch (NoSuchObjectException e) {
-      // Unhandled Exception
-      e.printStackTrace();
-    }
   }
 
   @Override
