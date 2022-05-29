@@ -23,9 +23,12 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   private final String username;
   private final boolean isAdmin;
+  private boolean approved = false;
 
   protected Session(String username, boolean isAdmin, Data data) throws RemoteException {
     data.addSession(this);
+
+    if (isAdmin) approved = true;
 
     actions = new ArrayList<>();
     messages = new ArrayList<>();
@@ -54,6 +57,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public ArrayList<Action> receiveActions() throws RemoteException {
+    if (!approved) return null;
+
     ArrayList<Action> allActions = data.getActions();
 
     List<Action> subList = new ArrayList<>(allActions.subList(actionIndex, allActions.size()));
@@ -68,6 +73,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public void sendActions(ArrayList<Action> actions) throws RemoteException {
+    if (!approved) return;
+
     for (Action action : actions) {
       if (isAdmin && action.getTool() == null) data.addAction(action);
       if (action.getTool() != null) data.addAction(action);
@@ -81,6 +88,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public ArrayList<String> getSessions() throws RemoteException {
+    if (!approved) return null;
+
     return data.getUsernames();
   }
 
@@ -93,6 +102,8 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public ArrayList<Message> getMessages() throws RemoteException {
+    if (!approved) return null;
+
     ArrayList<Message> allMessages = data.getMessages();
 
     List<Message> subList = new ArrayList<>(allMessages.subList(messageIndex, allMessages.size()));
@@ -107,12 +118,14 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
 
   @Override
   public void sendMessage(Message message) throws RemoteException {
+    if (!approved) return;
+
     data.addMessage(message);
   }
 
   @Override
   public void kick(String username) throws RemoteException {
-    if (!isAdmin) return;
+    if (!isAdmin || !approved) return;
 
     ArrayList<Session> sessions = data.getSessions();
 
@@ -124,8 +137,49 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
+  @Override
+  public void approve(String username) throws RemoteException {
+    if (!isAdmin || !approved) return;
+
+    ArrayList<Session> sessions = data.getSessions();
+
+    for (Session session : sessions) {
+      if (session.username.equals(username)) {
+        session.approved = true;
+        data.approve(username);
+        return;
+      }
+    }
+  }
+
+  @Override
+  public void reject(String username) throws RemoteException {
+    if (!isAdmin || !approved) return;
+
+    ArrayList<Session> sessions = data.getSessions();
+
+    for (Session session : sessions) {
+      if (session.username.equals(username)) {
+        data.reject(username);
+        session.logout();
+        return;
+      }
+    }
+  }
+
+  public ArrayList<String> getWaiting() throws RemoteException {
+    if (!isAdmin || !approved) return null;
+
+    return data.getWaiting();
+  }
+
+  @Override
+  public boolean isApproved() {
+    return approved;
+  }
+
   private void close() throws RemoteException {
-    if (!isAdmin) return;
+    if (!isAdmin || !approved) return;
 
     ArrayList<Session> sessions = data.getSessions();
 

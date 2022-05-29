@@ -22,8 +22,11 @@ public class Login extends UnicastRemoteObject implements ILogin {
     if (data.hasUsername(username)) {
       throw new LoginException("Username taken.");
     }
-    data.addUsername(username);
-    if (username.equals(admin)) return new Session(username, true, data);
+    if (username.equals(admin)) {
+      data.addUsername(username);
+      return new Session(username, true, data);
+    }
+    data.addWaiting(username);
     return new Session(username,false, data);
   }
 }

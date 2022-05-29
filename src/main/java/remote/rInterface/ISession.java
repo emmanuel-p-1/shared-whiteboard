@@ -24,4 +24,12 @@ public interface ISession extends Remote {
   void sendMessage(Message message) throws RemoteException;
 
   void kick(String username) throws RemoteException;
+
+  void approve(String username) throws RemoteException;
+
+  void reject(String username) throws RemoteException;
+
+  List<String> getWaiting() throws RemoteException;
+
+  boolean isApproved() throws RemoteException;
 }

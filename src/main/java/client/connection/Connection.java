@@ -19,6 +19,7 @@ public class Connection extends Thread {
   private final String username;
   private final String address;
   private final int port;
+  private boolean approved = false;
 
   public Connection(Client client, String username, String serverName, String address, int port) {
     this.client = client;
@@ -45,8 +46,17 @@ public class Connection extends Thread {
 
     while (!isInterrupted()) {
       try {
+        while (!remote.isApproved()) {
+          sleep(1000);
+        }
+        if (!approved) {
+          client.approved();
+          approved = true;
+        }
+
         if (System.currentTimeMillis() - time >= 5000) {
           client.addUsers(remote.getSessions());
+          client.addWaiting(remote.getWaiting());
 
           time = System.currentTimeMillis();
         }

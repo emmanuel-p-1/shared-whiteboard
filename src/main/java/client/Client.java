@@ -148,6 +148,20 @@ public class Client extends Application {
     });
   }
 
+  public void addWaiting(List<String> waiting) {
+    Platform.runLater(() -> {
+      userPane.updateWaiting(waiting);
+    });
+  }
+
+  public void approved() {
+    Platform.runLater(() -> {
+      getStage().setScene(getMain());
+      getStage().show();
+      getStage().centerOnScreen();
+    });
+  }
+
   public void restart() {
     try {
       closeConnection();

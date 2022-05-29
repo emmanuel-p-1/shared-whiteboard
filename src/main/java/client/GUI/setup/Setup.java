@@ -43,6 +43,10 @@ public class Setup {
   private final Scene usernameScene = new Scene(usernamePane, 400, 600);
   private final Button joinServer = new Button("Join");
 
+  private final VBox waitingPane = new VBox(10);
+  private final Scene waitingScene = new Scene(waitingPane, 400, 600);
+  private final TextField waitingText = new TextField("Waiting for approval...");
+
   private final TextField username = new TextField();
   private final HBox userBox = new HBox(new Label("Username: "), username);
   private final TextField serverName = new TextField();
@@ -186,7 +190,6 @@ public class Setup {
   public void onJoinServer() {
     joinServer.setOnAction(e -> {
       if (newServer) {
-        // TODO: add ip address
         try {
           client.startConnection(getUsername(), getServerName(), getAddress(), getPort());
           client.getRoot().getChildren().add(client.getWhiteboard().getAdminToolbox());
@@ -205,9 +208,11 @@ public class Setup {
       client.getUserPane().sendMessage();
       client.getUserPane().onDisconnect();
 
-      client.getStage().setScene(client.getMain());
+      waitingPane.getChildren().add(waitingText);
+      waitingPane.setAlignment(Pos.CENTER);
+
+      client.getStage().setScene(waitingScene);
       client.getStage().show();
-      client.getStage().centerOnScreen();
     });
   }
 

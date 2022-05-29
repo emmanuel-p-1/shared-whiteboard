@@ -1,6 +1,7 @@
 package client.GUI.users;
 
 import client.Client;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
@@ -21,6 +22,7 @@ public class UserPane {
   private final TextField input = new TextField();
   private final TextArea output = new TextArea();
   private final ListView<String> users = new ListView<>();
+  private final ListView<String> waiting = new ListView<>();
   private final Button disconnect = new Button("Disconnect");
 
   private final Client client;
@@ -28,17 +30,22 @@ public class UserPane {
   public UserPane(Client client) {
     this.client = client;
 
-    output.setPrefHeight(600);
+    output.setPrefHeight(500);
     output.setEditable(false);
     output.setFocusTraversable(false);
 
-    users.setPrefHeight(300);
+    users.setPrefHeight(200);
+    users.setFocusTraversable(false);
+
+    waiting.setPrefHeight(48);
+    waiting.setMaxHeight(150);
 
     disconnect.setMaxWidth(Double.MAX_VALUE);
     disconnect.setAlignment(Pos.CENTER);
 
     userPane.getChildren().add(label);
     userPane.getChildren().add(users);
+    userPane.getChildren().add(waiting);
     userPane.getChildren().add(output);
     userPane.getChildren().add(input);
     userPane.getChildren().add(disconnect);
@@ -60,6 +67,22 @@ public class UserPane {
     users.setCellFactory(stringListView -> {
       try {
         return new UserCell(client);
+      } catch (RemoteException e) {
+        e.printStackTrace();
+      }
+      return null;
+    });
+  }
+
+  public void updateWaiting(List<String> userList) {
+    waiting.setItems(null);
+    ObservableList<String> list = FXCollections.observableArrayList(userList);
+    waiting.setItems(list);
+    waiting.prefHeightProperty().bind(Bindings.size(list).multiply(48));
+
+    waiting.setCellFactory(stringListView -> {
+      try {
+        return new WaitCell(client);
       } catch (RemoteException e) {
         e.printStackTrace();
       }
@@ -138,6 +161,60 @@ public class UserPane {
             }
           } else {
             setGraphic(nokick);
+          }
+        } catch (RemoteException e) {
+          // Unhandled Exception
+          e.printStackTrace();
+        }
+      }
+    }
+  }
+
+  private static class WaitCell extends ListCell<String> {
+    HBox box = new HBox();
+    Label label = new Label();
+    Pane pane = new Pane();
+    Button approve = new Button("Approve"), reject = new Button("Reject");
+    Client client;
+
+    public WaitCell(Client client) throws RemoteException {
+      super();
+      this.client = client;
+
+      box.getChildren().addAll(label, pane, approve, reject);
+
+      HBox.setHgrow(pane, Priority.ALWAYS);
+
+      approve.setOnAction(event -> {
+        try {
+          client.getConnection().getRemote().approve(getItem());
+        } catch (RemoteException e) {
+          // Unhandled Exception
+          e.printStackTrace();
+        }
+      });
+      reject.setOnAction(event -> {
+        try {
+          client.getConnection().getRemote().reject(getItem());
+        } catch (RemoteException e) {
+          // Unhandled Exception
+          e.printStackTrace();
+        }
+      });
+    }
+
+    @Override
+    protected void updateItem(String item, boolean empty) {
+      super.updateItem(item, empty);
+      setText(null);
+      setGraphic(null);
+
+      if (item != null && !empty) {
+        label.setText(item);
+
+        try {
+          if (client.getConnection().getRemote().isAdmin()) {
+            setGraphic(box);
           }
         } catch (RemoteException e) {
           // Unhandled Exception

@@ -10,17 +10,20 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Data {
   private final ArrayList<String> usernames = new ArrayList<>();
+  private final ArrayList<String> waiting = new ArrayList<>();
   private final ArrayList<Action> allActions = new ArrayList<>();
   private final ArrayList<Message> allMessages = new ArrayList<>();
   private final ArrayList<Session> sessions = new ArrayList<>();
 
   private final ReadWriteLock userLock = new ReentrantReadWriteLock();
+  private final ReadWriteLock waitLock = new ReentrantReadWriteLock();
   private final ReadWriteLock actionLock = new ReentrantReadWriteLock();
   private final ReadWriteLock messageLock = new ReentrantReadWriteLock();
   private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
 
   public boolean hasUsername(String username) {
     boolean matched = false;
+
     userLock.readLock().lock();
     try {
       for (String u : usernames) {
@@ -32,7 +35,51 @@ public class Data {
     } finally {
       userLock.readLock().unlock();
     }
+
+    if (!matched) {
+      waitLock.readLock().lock();
+      try {
+        for (String w : waiting) {
+          if (w.equals(username)) {
+            matched = true;
+            break;
+          }
+        }
+      } finally {
+        waitLock.readLock().unlock();
+      }
+    }
+
     return matched;
+  }
+
+  public void approve(String username) {
+    waitLock.writeLock().lock();
+    try {
+      waiting.remove(username);
+    } finally {
+      waitLock.writeLock().unlock();
+    }
+
+    addUsername(username);
+  }
+
+  public void reject(String username) {
+    waitLock.writeLock().lock();
+    try {
+      waiting.remove(username);
+    } finally {
+      waitLock.writeLock().unlock();
+    }
+  }
+
+  public void addWaiting(String username) {
+    waitLock.writeLock().lock();
+    try {
+      waiting.add(username);
+    } finally {
+      waitLock.writeLock().unlock();
+    }
   }
 
   public void addUsername(String username) {
@@ -51,6 +98,17 @@ public class Data {
       tmp = new ArrayList<>(usernames);
     } finally {
       userLock.readLock().unlock();
+    }
+    return tmp;
+  }
+
+  public ArrayList<String> getWaiting() {
+    waitLock.readLock().lock();
+    ArrayList<String> tmp;
+    try {
+      tmp = new ArrayList<>(waiting);
+    } finally {
+      waitLock.readLock().unlock();
     }
     return tmp;
   }
@@ -128,6 +186,13 @@ public class Data {
       usernames.remove(session.getUsername());
     } finally {
       userLock.writeLock().unlock();
+    }
+
+    waitLock.writeLock().lock();
+    try {
+      waiting.remove(session.getUsername());
+    } finally {
+      waitLock.writeLock().unlock();
     }
   }
 }
