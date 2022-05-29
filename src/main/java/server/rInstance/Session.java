@@ -1,5 +1,6 @@
 package server.rInstance;
 
+import client.GUI.whiteboard.File;
 import remote.serializable.Action;
 import remote.rInterface.ISession;
 import remote.serializable.Message;
@@ -12,20 +13,32 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class Session extends UnicastRemoteObject implements ISession, Unreferenced {
-  private final Data data;
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Remote object for each connection session.
+ *
+ */
 
-  private final ArrayList<Action> actions;
-  private final ArrayList<Message> messages;
+public class Session extends UnicastRemoteObject implements ISession,
+        Unreferenced {
+  private final Data data;                    // Shared data.
 
-  private int actionIndex = 0;
-  private int messageIndex = 0;
+  private final ArrayList<Action> actions;    // Received actions.
+  private final ArrayList<Message> messages;  // Received messages.
 
-  private final String username;
-  private final boolean isAdmin;
-  private boolean approved = false;
+  private int actionIndex = 0;                // Index for all actions.
+  private int messageIndex = 0;               // Index for all messages.
 
-  protected Session(String username, boolean isAdmin, Data data) throws RemoteException {
+  private final String username;              // Username
+  private final boolean isAdmin;              // If user is admin.
+  private boolean approved = false;           // If approved to join.
+  private static boolean LOCK = false;        // Locked when cleared.
+
+  // Creates session for user.
+  protected Session(String username, boolean isAdmin, Data data) throws
+          RemoteException {
     data.addSession(this);
 
     if (isAdmin) approved = true;
@@ -39,10 +52,12 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     this.data = data;
   }
 
+  // Gets username
   public String getUsername() {
     return username;
   }
 
+  // Unexport when unreferenced.
   @Override
   public void unreferenced() {
     try {
@@ -54,13 +69,15 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
+  // Get unimplemented actions.
   @Override
   public ArrayList<Action> receiveActions() throws RemoteException {
     if (!approved) return null;
 
     ArrayList<Action> allActions = data.getActions();
 
-    List<Action> subList = new ArrayList<>(allActions.subList(actionIndex, allActions.size()));
+    List<Action> subList = new ArrayList<>(allActions.subList(actionIndex,
+            allActions.size()));
     ArrayList<Action> unperformedActions = new ArrayList<>(subList);
 
     unperformedActions.removeAll(actions);
@@ -70,21 +87,35 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     return unperformedActions;
   }
 
+  // Add actions to shared list.
   @Override
   public void sendActions(ArrayList<Action> actions) throws RemoteException {
     if (!approved) return;
 
     for (Action action : actions) {
-      if (isAdmin && action.getTool() == null) data.addAction(action);
-      if (action.getTool() != null) data.addAction(action);
+      if (isAdmin && action.getOption() != null) {
+        if (LOCK) {
+          if (action.getOption().equals(File.OPEN) ||
+                  action.getOption().equals(File.NEW)) {
+            data.addAction(action);
+            LOCK = false;
+          }
+        } else if (action.getOption().equals(File.CLOSE)) {
+          data.addAction(action);
+          LOCK = true;
+        }
+      }
+      if (action.getTool() != null && !LOCK) data.addAction(action);
     }
   }
 
+  // Get if user is admin.
   @Override
   public boolean isAdmin() throws RemoteException {
     return isAdmin;
   }
 
+  // Get all users.
   @Override
   public ArrayList<String> getSessions() throws RemoteException {
     if (!approved) return null;
@@ -92,6 +123,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     return data.getUsernames();
   }
 
+  // Leave connection.
   @Override
   public void logout() throws RemoteException {
     close();
@@ -99,13 +131,15 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     unexportObject(this, true);
   }
 
+  // Get unread messages.
   @Override
   public ArrayList<Message> getMessages() throws RemoteException {
     if (!approved) return null;
 
     ArrayList<Message> allMessages = data.getMessages();
 
-    List<Message> subList = new ArrayList<>(allMessages.subList(messageIndex, allMessages.size()));
+    List<Message> subList = new ArrayList<>(allMessages.subList(messageIndex,
+            allMessages.size()));
     ArrayList<Message> unsentMessages = new ArrayList<>(subList);
 
     unsentMessages.removeAll(messages);
@@ -115,6 +149,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     return unsentMessages;
   }
 
+  // Add messages to shared list.
   @Override
   public void sendMessage(Message message) throws RemoteException {
     if (!approved) return;
@@ -122,6 +157,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     data.addMessage(message);
   }
 
+  // Remove connection.
   @Override
   public void kick(String username) throws RemoteException {
     if (!isAdmin || !approved) return;
@@ -136,6 +172,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
+  // Allow user to enter room.
   @Override
   public void approve(String username) throws RemoteException {
     if (!isAdmin || !approved) return;
@@ -151,6 +188,7 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
+  // Deny user from entering room.
   @Override
   public void reject(String username) throws RemoteException {
     if (!isAdmin || !approved) return;
@@ -166,12 +204,14 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
     }
   }
 
+  // Get usernames of waiting users.
   public ArrayList<String> getWaiting() throws RemoteException {
     if (!isAdmin || !approved) return null;
 
     return data.getWaiting();
   }
 
+  // Check if user is approved.
   @Override
   public boolean isApproved() {
     return approved;

@@ -23,28 +23,52 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Shared whiteboard canvas.
+ *
+ */
+
 public class Whiteboard {
+  // Canvas for confirmed actions.
   private final Canvas canvas = new Canvas(1000, 1000);
+  // Canvas for local actions.
   private final Canvas editLayer = new Canvas(1000, 1000);
+  // Text (canvas) for local text.
   private final TextField textLayer = new TextField();
-  private final StackPane canvasContainer = new StackPane(canvas, editLayer, textLayer);
+  // Stack of all components.
+  private final StackPane canvasContainer = new StackPane(canvas, editLayer,
+          textLayer);
+
+  // Brush toolbox.
   private final VBox toolbox = new VBox();
+  // Brush properties.
   private final VBox toolProperties = new VBox();
+  // File menu.
   private final VBox options = new VBox();
 
+  // The brush.
   private final GraphicsContext gc = canvas.getGraphicsContext2D();
 
+  // Initial tool.
   private Tool tool = Tool.PAINT;
 
+  // Create whiteboard with all tools.
   public Whiteboard(Client client) {
     canvasContainer.setBorder(getBorder());
     toolbox.setFillWidth(true);
     textLayer.setVisible(false);
     textLayer.setBackground(Background.EMPTY);
+    textLayer.setMaxWidth(1000);
+
+    toolProperties.setSpacing(10);
 
     gc.setLineWidth(10);
     gc.setLineCap(StrokeLineCap.ROUND);
 
+    // Get tool buttons.
     for (Tool t : Tool.values()) {
       Button btn = new Button(t.name());
       btn.setMaxWidth(Double.MAX_VALUE);
@@ -56,19 +80,23 @@ public class Whiteboard {
       });
     }
 
+    // Get tool property buttons.
     for (ToolProperty t : ToolProperty.values()) {
       toolProperties.getChildren().add(t.getNode(gc));
     }
 
+    // Get file menu buttons.
     for (File file : File.values()) {
       options.getChildren().add(file.getNode(canvas, client.getStage()));
     }
   }
 
+  // Get stack of all "canvases"
   public StackPane getCanvas() {
     return canvasContainer;
   }
 
+  // Set canvas border
   private Border getBorder() {
     Color color = Color.BLACK;
     BorderStrokeStyle borderStyle = BorderStrokeStyle.SOLID;
@@ -78,31 +106,37 @@ public class Whiteboard {
     return new Border(new BorderStroke(color, borderStyle, corner, width));
   }
 
+  // Get toolbox
   public VBox getToolbox() {
     VBox box = new VBox(toolbox, toolProperties);
     box.setSpacing(50);
     return box;
   }
 
+  // Get toolbox with file menu (for admins)
   public VBox getAdminToolbox() {
     VBox box = new VBox(options, toolbox, toolProperties);
     box.setSpacing(50);
     return box;
   }
 
+  // When mouse dragged across canvas.
   public void draw(MouseEvent e) {
     tool.useDragTool(editLayer, gc, e);
   }
 
+  // When mouse clicks on canvas.
   public void click(MouseEvent e) {
     tool.useClickTool(editLayer, gc, e);
     tool.useClickTool(textLayer, gc, e);
   }
 
+  // When mouse button is released.
   public void release(MouseEvent e) {
     tool.useReleaseTool(editLayer, gc, e);
   }
 
+  // For received data when read from remote.
   public void processActions(ArrayList<Action> actions) {
     Paint paint = gc.getStroke();
     double lineWidth = gc.getLineWidth();
@@ -113,30 +147,38 @@ public class Whiteboard {
           case PAINT -> {
             gc.setStroke(Color.web(action.getPaint()));
             gc.setLineWidth(action.getSize());
-            gc.strokeLine(action.getX1(), action.getY1(), action.getX1(), action.getY1());
+            gc.strokeLine(action.getX1(), action.getY1(), action.getX1(),
+                    action.getY1());
           }
-          case ERASE -> gc.clearRect(action.getX1(), action.getY1(), action.getSize(), action.getSize());
+          case ERASE -> gc.clearRect(action.getX1(), action.getY1(),
+                  action.getSize(), action.getSize());
           case LINE -> {
             gc.setStroke(Color.web(action.getPaint()));
             gc.setLineWidth(action.getSize());
-            gc.strokeLine(action.getX1(), action.getY1(), action.getX2(), action.getY2());
+            gc.strokeLine(action.getX1(), action.getY1(), action.getX2(),
+                    action.getY2());
           }
           case CIRCLE -> {
             gc.setStroke(Color.web(action.getPaint()));
             gc.setLineWidth(action.getSize());
-            gc.strokeOval(action.getX1(), action.getY1(), action.getX2(), action.getY2());
+            gc.strokeOval(action.getX1(), action.getY1(), action.getX2(),
+                    action.getY2());
           }
           case TRIANGLE -> {
             gc.setStroke(Color.web(action.getPaint()));
             gc.setLineWidth(action.getSize());
-            gc.strokeLine((action.getX2() + action.getX1()) / 2, action.getY2(), action.getX2(), action.getY1());
-            gc.strokeLine((action.getX2() + action.getX1()) / 2, action.getY2(), action.getX1(), action.getY1());
-            gc.strokeLine(action.getX2(), action.getY1(), action.getX1(), action.getY1());
+            gc.strokeLine((action.getX2() + action.getX1()) / 2,
+                    action.getY2(), action.getX2(), action.getY1());
+            gc.strokeLine((action.getX2() + action.getX1()) / 2,
+                    action.getY2(), action.getX1(), action.getY1());
+            gc.strokeLine(action.getX2(), action.getY1(), action.getX1(),
+                    action.getY1());
           }
           case RECTANGLE -> {
             gc.setStroke(Color.web(action.getPaint()));
             gc.setLineWidth(action.getSize());
-            gc.strokeRect(action.getX1(), action.getY1(), action.getX2(), action.getY2());
+            gc.strokeRect(action.getX1(), action.getY1(), action.getX2(),
+                    action.getY2());
           }
           case TEXT -> {
             gc.setFill(Color.web(action.getPaint()));
@@ -147,7 +189,7 @@ public class Whiteboard {
         }
       } else if (action.getTool() == null && action.getOption() != null) {
         switch (action.getOption()) {
-          case NEW -> {
+          case NEW, CLOSE -> {
             gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
           }
           case OPEN -> {

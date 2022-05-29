@@ -1,229 +1,263 @@
 package client.GUI.setup;
 
 import client.Client;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.Background;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.effect.Effect;
+import javafx.scene.layout.*;
 
-import java.net.Inet4Address;
+import javax.security.auth.login.LoginException;
+import java.io.IOException;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.AlreadyBoundException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
+import java.util.Arrays;
+import java.util.List;
+
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Setups the JavaFX Stage.
+ *
+ */
 
 public class Setup {
-  private final VBox networkSelectPane = new VBox(10);
-  private final Scene networkSelectScene = new Scene(networkSelectPane, 400, 600);
-  private final Button joinLocalButton = new Button("Use Local Host");
-  private final Button joinRemoteButton = new Button("Join Remote Host");
+  // Screen 1 Elements (address/port connection).
+  private final VBox connectPane = new VBox(10);
+  private final Scene connectScene = new Scene(connectPane, 400, 600);
+  private final Button connectButton = new Button("Connect");
 
-  private final VBox localServerPane = new VBox(10);
-  private final Scene localServerScene = new Scene(localServerPane, 400, 600);
-  private final Button localServerButton = new Button("Connect");
+  // Screen 2 Elements (registry selection).
+  private final VBox serverPane = new VBox(10);
+  private final Scene serverScene = new Scene(serverPane, 400, 600);
+  private final Button serverButton = new Button("Create");
 
-  private final VBox remoteServerPane = new VBox(10);
-  private final Scene remoteServerScene = new Scene(remoteServerPane, 400, 600);
-  private final Button remoteServerButton = new Button("Connect");
+  // Screen 3 Elements (user creation).
+  private final VBox userPane = new VBox(10);
+  private final Scene userScene = new Scene(userPane, 400, 600);
+  private final Button userButton = new Button("Join");
 
-  private final VBox selectNamePane = new VBox(10);
-  private final Scene selectNameScene = new Scene(selectNamePane, 400, 600);
-  private final Button selectNameButton = new Button("Add New");
-
-  private final VBox newServerPane = new VBox(10);
-  private final Scene newServerScene = new Scene(newServerPane, 400, 600);
-  private final Button newServerButton = new Button("Create");
-
-  private final VBox usernamePane = new VBox(10);
-  private final Scene usernameScene = new Scene(usernamePane, 400, 600);
-  private final Button joinServer = new Button("Join");
-
+  // Screen 4 Elements (waiting for approval).
   private final VBox waitingPane = new VBox(10);
   private final Scene waitingScene = new Scene(waitingPane, 400, 600);
-  private final TextField waitingText = new TextField("Waiting for approval...");
+  private final TextField waitingText = new TextField(
+          "Waiting for approval...");
 
+  // TextFields that collect information required for connection.
   private final TextField username = new TextField();
-  private final HBox userBox = new HBox(new Label("Username: "), username);
+  private final GridPane userBox = new GridPane();
   private final TextField serverName = new TextField();
-  private final HBox serverBox = new HBox(new Label("Whiteboard Name: "), serverName);
+  private final GridPane serverBox = new GridPane();
   private final TextField address = new TextField();
-  private final HBox addressBox = new HBox(new Label("IP Address: "), address);
+  private final GridPane addressBox = new GridPane();
   private final TextField port = new TextField();
-  private final HBox portBox = new HBox(new Label("Port: "), port);
+  private final GridPane portBox = new GridPane();
 
-  private final Client client;
-  private boolean newServer = false;
+  // Reset screen to start.
+  private final Button reset = new Button("reset");
+  private final Region resetRegion = new Region();
+  private final Region upperRegion = new Region();
 
+  private final Client client;        // Client driver.
+  private boolean newServer = false;  // Will user create a new server.
+
+  // Initialise setup elements.
   public Setup(Client client) {
     this.client = client;
+
+    // Add labels to TextFields. i.e. Label: [ TextField ]
+    ColumnConstraints col1 = new ColumnConstraints();
+    col1.setPercentWidth(30);
+    userBox.getColumnConstraints().add(0, col1);
+    serverBox.getColumnConstraints().add(0, col1);
+    addressBox.getColumnConstraints().add(0, col1);
+    portBox.getColumnConstraints().add(0, col1);
+
+    ColumnConstraints col2 = new ColumnConstraints();
+    col2.setPercentWidth(60);
+    userBox.getColumnConstraints().add(1, col2);
+    serverBox.getColumnConstraints().add(1, col2);
+    addressBox.getColumnConstraints().add(1, col2);
+    portBox.getColumnConstraints().add(1, col2);
+
+    // Put labels and TextFields into their GridPanes.
+    userBox.add(new Label("Username: "), 0, 0);
+    userBox.add(username, 1, 0);
+    serverBox.add(new Label("Whiteboard Name: "), 0, 0);
+    serverBox.add(serverName, 1, 0);
+    addressBox.add(new Label("IP Address: "), 0, 0);
+    addressBox.add(address, 1, 0);
+    portBox.add(new Label("Port: "), 0, 0);
+    portBox.add(port, 1, 0);
+
+    userBox.setAlignment(Pos.CENTER);
+    serverBox.setAlignment(Pos.CENTER);
+    addressBox.setAlignment(Pos.CENTER);
+    portBox.setAlignment(Pos.CENTER);
+
+    // Reset to start.
+    reset.setOnAction(e -> {
+      Client.setError("");
+      client.restart();
+    });
+
+    VBox.setVgrow(resetRegion, Priority.ALWAYS);
+    VBox.setVgrow(upperRegion, Priority.ALWAYS);
   }
 
+  // Screen 1 - address/port connection.
   public void startup() {
-    networkSelectPane.getChildren().addAll(joinLocalButton, joinRemoteButton, Client.getError());
+    connectPane.getChildren().addAll(addressBox, portBox, connectButton,
+            Client.getError());
 
-    networkSelectPane.setAlignment(Pos.CENTER);
-    joinLocalButton.setMaxWidth(400);
-    joinRemoteButton.setMaxWidth(400);
+    connectPane.setAlignment(Pos.CENTER);
+    connectButton.setMaxWidth(400);
 
-    client.getStage().setScene(networkSelectScene);
+    client.getStage().setScene(connectScene);
     client.getStage().show();
     client.getStage().centerOnScreen();
   }
 
-  public void onJoinLocalHost() {
-    joinLocalButton.setOnAction(e -> {
+  // Screen 2 - registry selection.
+  public void onConnect() {
+    connectButton.setOnAction(e -> {
       Client.setError("");
+
       try {
-        address.setText(Inet4Address.getLocalHost().getHostAddress());
-      } catch (UnknownHostException ex) {
-        Client.setError("Local host address not found");
-      }
-
-      localServerPane.getChildren().addAll(portBox, localServerButton, Client.getError());
-
-      HBox.setHgrow(port, Priority.ALWAYS);
-      portBox.setMaxWidth(300);
-
-      localServerPane.setAlignment(Pos.CENTER);
-      localServerButton.setMaxWidth(400);
-
-      client.getStage().setScene(localServerScene);
-      client.getStage().show();
-    });
-  }
-
-  public void onJoinRemoteHost() {
-    joinRemoteButton.setOnAction(e -> {
-      Client.setError("");
-      remoteServerPane.getChildren().addAll(addressBox, portBox, remoteServerButton, Client.getError());
-
-      HBox.setHgrow(address, Priority.ALWAYS);
-      HBox.setHgrow(port, Priority.ALWAYS);
-      portBox.setMaxWidth(300);
-      addressBox.setMaxWidth(300);
-
-      remoteServerPane.setAlignment(Pos.CENTER);
-      remoteServerButton.setMaxWidth(400);
-
-      client.getStage().setScene(remoteServerScene);
-      client.getStage().show();
-    });
-  }
-
-  public void onRegistrySelect() {
-    localServerButton.setOnAction(e -> {
-      Client.setError("");
-      showRegistry();
-    });
-
-    remoteServerButton.setOnAction(e -> {
-      Client.setError("");
-      showRegistry();
-    });
-  }
-
-  public void showRegistry() {
-    try {
-      Registry registry = LocateRegistry.getRegistry(getAddress(), getPort());
-      for (String reg : registry.list()) {
-        Button btn = new Button(reg);
-        selectNamePane.getChildren().add(btn);
-        btn.setMaxWidth(400);
-
-        btn.setOnAction(ev -> {
+        Registry registry = LocateRegistry.getRegistry(getAddress(),
+                getPort());
+        List<String> rList = Arrays.asList(registry.list());
+        ObservableList<String> list = FXCollections.observableList(rList);
+        ListView<String> lv = new ListView<>(list);
+        lv.setOnMouseClicked(ev -> {
           newServer = false;
-          setServerName(reg);
-          onUserCreate();
+          setServerName(lv.getSelectionModel().getSelectedItem());
+          userCreate();
         });
+        serverPane.getChildren().add(lv);
+      } catch (RemoteException ev) {
+        Client.setError("Empty Registry");
       }
-    } catch (RemoteException ev) {
-      Client.setError("Empty Registry");
-    }
 
-    selectNamePane.getChildren().addAll(Client.getError(), selectNameButton);
+      serverPane.getChildren().addAll(upperRegion, serverBox, serverButton,
+              Client.getError(), resetRegion, reset);
 
-    selectNamePane.setAlignment(Pos.CENTER);
-    selectNameButton.setMaxWidth(400);
+      serverPane.setAlignment(Pos.CENTER);
+      serverButton.setMaxWidth(400);
 
-    client.getStage().setScene(selectNameScene);
-    client.getStage().show();
-  }
-
-  public void onNewRegistry() {
-    selectNameButton.setOnAction(e -> {
-      Client.setError("");
-      newServer = true;
-
-      newServerPane.getChildren().addAll(serverBox, newServerButton, Client.getError());
-
-      HBox.setHgrow(serverName, Priority.ALWAYS);
-      serverBox.setMaxWidth(300);
-
-      newServerPane.setAlignment(Pos.CENTER);
-      newServerButton.setMaxWidth(400);
-
-      client.getStage().setScene(newServerScene);
+      client.getStage().setScene(serverScene);
       client.getStage().show();
     });
   }
 
-  public void onNewServer() {
-    newServerButton.setOnAction(e -> {
-      Client.setError("");
-      onUserCreate();
+  // Screen 2.5 - New user creation with new server creation.
+  public void onServerButton() {
+    serverButton.setOnAction(e -> {
+      try {
+        Registry registry = LocateRegistry.getRegistry(getAddress(),
+                getPort());
+        List<String> rList = Arrays.asList(registry.list());
+        if (rList.contains(serverName.getText())) {
+          Client.setError("Name in use");
+          return;
+        }
+      } catch (RemoteException ev) {
+        Client.setError("Empty Registry");
+      }
+
+      newServer = true;
+      userCreate();
     });
   }
 
-  public void onUserCreate() {
+  // Screen 3 - New user creation.
+  private void userCreate() {
     Client.setError("");
-    usernamePane.getChildren().addAll(userBox, joinServer, Client.getError());
+
+    userPane.getChildren().addAll(upperRegion, userBox, userButton,
+            Client.getError(), resetRegion, reset);
 
     HBox.setHgrow(username, Priority.ALWAYS);
     userBox.setMaxWidth(300);
 
-    usernamePane.setAlignment(Pos.CENTER);
-    joinServer.setMaxWidth(400);
+    userPane.setAlignment(Pos.CENTER);
+    userButton.setMaxWidth(400);
 
-    client.getStage().setScene(usernameScene);
+    client.getStage().setScene(userScene);
     client.getStage().show();
   }
 
+  // Complete connection.
   public void onJoinServer() {
-    joinServer.setOnAction(e -> {
+    userButton.setOnAction(e -> {
       Client.setError("");
+
+      // Depending on choice, create or join server.
       if (newServer) {
         try {
-          client.startConnection(getUsername(), getServerName(), getAddress(), getPort());
-          client.getRoot().getChildren().add(client.getWhiteboard().getAdminToolbox());
+          client.startConnection(getUsername(), getServerName(), getAddress(),
+                  getPort());
+          client.getRoot().getChildren().add(
+                  client.getWhiteboard().getAdminToolbox());
         } catch (AlreadyBoundException ex) {
           Client.setError("Server name taken");
+          return;
         } catch (UnknownHostException ex) {
           Client.setError("Host address not found");
+          return;
         } catch (RemoteException ex) {
-          Client.setError(ex.getMessage());
+          Client.setError("Error communicating with server");
+          return;
+        } catch (NotBoundException ex) {
+          Client.setError("Server not bound");
+          return;
+        } catch (LoginException ex) {
+          Client.setError("Username taken");
+          return;
         }
       } else {
-        client.joinConnection(getUsername(), getServerName(), getAddress(), getPort());
-        client.getRoot().getChildren().add(client.getWhiteboard().getToolbox());
+        try {
+          client.joinConnection(getUsername(), getServerName(), getAddress(),
+                  getPort());
+        } catch (NotBoundException ex) {
+          Client.setError("Server not bound");
+          return;
+        } catch (LoginException ex) {
+          Client.setError("Username taken");
+          return;
+        } catch (RemoteException ex) {
+          Client.setError("Error communicating with server");
+          return;
+        }
+        client.getRoot().getChildren().add(
+                client.getWhiteboard().getToolbox());
       }
 
       client.getRoot().getChildren().add(client.getWhiteboard().getCanvas());
       client.getRoot().getChildren().add(client.getUserPane().getUserPane());
 
+      // Enable messaging and disconnecting.
       client.getUserPane().sendMessage();
       client.getUserPane().onDisconnect();
 
+      // Wait for approval.
       waitingText.setDisable(true);
       waitingText.setBackground(Background.EMPTY);
       waitingText.setAlignment(Pos.CENTER);
 
-      waitingPane.getChildren().addAll(waitingText, Client.getError());
+      waitingPane.getChildren().addAll(upperRegion, waitingText,
+              Client.getError(), resetRegion, reset);
       waitingPane.setAlignment(Pos.CENTER);
 
       client.getStage().setScene(waitingScene);
@@ -231,23 +265,28 @@ public class Setup {
     });
   }
 
-  public void setServerName(String name) {
+  // Set to specified server name.
+  private void setServerName(String name) {
     serverName.setText(name);
   }
 
-  public String getUsername() {
+  // Get specified username.
+  private String getUsername() {
     return username.getText();
   }
 
-  public String getServerName() {
+  // Get specified server name.
+  private String getServerName() {
     return serverName.getText();
   }
 
-  public String getAddress() {
+  // Get specified address name.
+  private String getAddress() {
     return address.getText();
   }
 
-  public int getPort() {
+  // Get specified port.
+  private int getPort() {
     return Integer.parseInt(port.getText());
   }
 }

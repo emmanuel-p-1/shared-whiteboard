@@ -8,6 +8,14 @@ import javax.security.auth.login.LoginException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Remote object for user login.
+ *
+ */
+
 public class Login extends UnicastRemoteObject implements ILogin {
   private final String admin;
   private final Data data;
@@ -17,10 +25,12 @@ public class Login extends UnicastRemoteObject implements ILogin {
     this.data = data;
   }
 
+  // Login to receive a session.
   @Override
-  public ISession login(String username) throws LoginException, RemoteException {
+  public ISession login(String username) throws LoginException,
+          RemoteException {
     if (data.hasUsername(username)) {
-      throw new LoginException("Username taken.");
+      throw new LoginException();
     }
     if (username.equals(admin)) {
       data.addUsername(username);

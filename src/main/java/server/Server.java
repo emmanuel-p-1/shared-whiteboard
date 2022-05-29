@@ -8,6 +8,14 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Server implementation.
+ *
+ */
+
 public class Server {
   private final String serverName;
   private final int port;

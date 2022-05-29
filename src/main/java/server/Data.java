@@ -8,19 +8,30 @@ import java.util.ArrayList;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * System data storage.
+ *
+ */
+
 public class Data {
+  // Data lists.
   private final ArrayList<String> usernames = new ArrayList<>();
   private final ArrayList<String> waiting = new ArrayList<>();
   private final ArrayList<Action> allActions = new ArrayList<>();
   private final ArrayList<Message> allMessages = new ArrayList<>();
   private final ArrayList<Session> sessions = new ArrayList<>();
 
+  // Locks.
   private final ReadWriteLock userLock = new ReentrantReadWriteLock();
   private final ReadWriteLock waitLock = new ReentrantReadWriteLock();
   private final ReadWriteLock actionLock = new ReentrantReadWriteLock();
   private final ReadWriteLock messageLock = new ReentrantReadWriteLock();
   private final ReadWriteLock sessionLock = new ReentrantReadWriteLock();
 
+  // Check username.
   public boolean hasUsername(String username) {
     boolean matched = false;
 
@@ -53,6 +64,7 @@ public class Data {
     return matched;
   }
 
+  // Approve user.
   public void approve(String username) {
     waitLock.writeLock().lock();
     try {
@@ -64,6 +76,7 @@ public class Data {
     addUsername(username);
   }
 
+  // Reject user.
   public void reject(String username) {
     waitLock.writeLock().lock();
     try {
@@ -73,6 +86,7 @@ public class Data {
     }
   }
 
+  // User added to queue.
   public void addWaiting(String username) {
     waitLock.writeLock().lock();
     try {
@@ -82,6 +96,7 @@ public class Data {
     }
   }
 
+  // Add user.
   public void addUsername(String username) {
     userLock.writeLock().lock();
     try {
@@ -91,6 +106,7 @@ public class Data {
     }
   }
 
+  // Get all usernames.
   public ArrayList<String> getUsernames() {
     userLock.readLock().lock();
     ArrayList<String> tmp;
@@ -102,6 +118,7 @@ public class Data {
     return tmp;
   }
 
+  // get all waiting usernames.
   public ArrayList<String> getWaiting() {
     waitLock.readLock().lock();
     ArrayList<String> tmp;
@@ -113,6 +130,7 @@ public class Data {
     return tmp;
   }
 
+  // Add action.
   public void addAction(Action action) {
     actionLock.writeLock().lock();
     try {
@@ -122,6 +140,7 @@ public class Data {
     }
   }
 
+  // Get all actions.
   public ArrayList<Action> getActions() {
     actionLock.readLock().lock();
     ArrayList<Action> actions;
@@ -133,6 +152,7 @@ public class Data {
     return actions;
   }
 
+  // Add message.
   public void addMessage(Message message) {
     messageLock.writeLock().lock();
     try {
@@ -142,6 +162,7 @@ public class Data {
     }
   }
 
+  // Get all messages.
   public ArrayList<Message> getMessages() {
     messageLock.readLock().lock();
     ArrayList<Message> messages;
@@ -153,6 +174,7 @@ public class Data {
     return messages;
   }
 
+  // Get all sessions.
   public ArrayList<Session> getSessions() {
     sessionLock.readLock().lock();
     ArrayList<Session> sessions;
@@ -164,6 +186,7 @@ public class Data {
     return sessions;
   }
 
+  // Add new user session.
   public void addSession(Session session) {
     sessionLock.writeLock().lock();
     try {
@@ -173,6 +196,7 @@ public class Data {
     }
   }
 
+  // Remove session.
   public void removeSession(Session session) {
     sessionLock.writeLock().lock();
     try {

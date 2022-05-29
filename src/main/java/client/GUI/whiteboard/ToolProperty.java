@@ -1,59 +1,39 @@
 package client.GUI.whiteboard;
 
-import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
-import javafx.scene.control.Button;
+import javafx.scene.control.ColorPicker;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 
-enum ToolProperty {
-  COLOUR {
-    private final Color[] colors = {
-            Color.BLACK, Color.WHITE, Color.AQUA, Color.BLUE,
-            Color.VIOLET, Color.BURLYWOOD, Color.CYAN, Color.DARKBLUE,
-            Color.DARKGREEN, Color.RED, Color.LIME, Color.MAGENTA,
-            Color.MAROON, Color.ORANGE, Color.PLUM, Color.YELLOW};
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Whiteboard tools properties.
+ *
+ */
 
+public enum ToolProperty {
+  // Colour of brush.
+  COLOUR {
     @Override
     Node getNode(GraphicsContext gc) {
-      int n = 0;
-      GridPane palette = new GridPane();
+      ColorPicker colorPicker = new ColorPicker();
+      colorPicker.setValue(Color.BLACK);
 
-      // Set column width
-      for (int i = 0; i < 2; i++) {
-        ColumnConstraints columnConstraints = new ColumnConstraints();
-        columnConstraints.setPercentWidth(50);
-        palette.getColumnConstraints().add(i, columnConstraints);
-      }
+      colorPicker.setOnAction(e -> {
+        gc.setStroke(colorPicker.getValue());
+      });
 
-      for (int i = 0; i < 8; i++) {
-        for (int j = 0; j < 2; j++) {
-          Color color = colors[n];
-
-          Button btn = new Button();
-          btn.setMaxWidth(Double.MAX_VALUE);
-          btn.setBackground(new Background(new BackgroundFill(color, null, null)));
-
-          palette.add(btn, j, i);
-
-          btn.setOnAction(e -> {
-            gc.setStroke(color);
-          });
-
-          n++;
-        }
-      }
-
-      return palette;
+      return colorPicker;
     }
   },
+  // Size of brush.
   SIZE {
     @Override
     Node getNode(GraphicsContext gc) {
       Slider slider = new Slider(1, 100, gc.getLineWidth());
-      slider.setOrientation(Orientation.VERTICAL);
       slider.setMaxWidth(Double.MAX_VALUE);
       slider.setMajorTickUnit(99);
       slider.setShowTickLabels(true);
@@ -66,5 +46,6 @@ enum ToolProperty {
     }
   };
 
+  // Gets the node for the toolbox.
   abstract Node getNode(GraphicsContext gc);
 }

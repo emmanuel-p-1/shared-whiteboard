@@ -5,6 +5,14 @@ import client.GUI.whiteboard.Tool;
 
 import java.io.Serializable;
 
+/**
+ * COMP90015 Assignment 2
+ * Implemented by Emmanuel Pinca 1080088
+ *
+ * Action serialization.
+ *
+ */
+
 public class Action implements Serializable {
   private final Tool tool;
   private final String text;
@@ -17,6 +25,8 @@ public class Action implements Serializable {
 
   private final File file;
   private final byte[] canvas;
+
+  // Constructs action
 
   // Erase
   public Action(Tool tool, double x1, double y1, double size) {
@@ -47,7 +57,8 @@ public class Action implements Serializable {
   }
 
   // Text
-  public Action(Tool tool, String text, double x1, double y1, double size, String paint) {
+  public Action(Tool tool, String text, double x1, double y1, double size,
+                String paint) {
     this.tool = tool;
     this.text = text;
     this.x1 = x1;
@@ -61,7 +72,8 @@ public class Action implements Serializable {
   }
 
   // Line, Circle, Triangle, Rectangle
-  public Action(Tool tool, double x1, double y1, double x2, double y2, double size, String paint) {
+  public Action(Tool tool, double x1, double y1, double x2, double y2,
+                double size, String paint) {
     this.tool = tool;
     this.text = null;
     this.x1 = x1;
@@ -88,6 +100,7 @@ public class Action implements Serializable {
     this.canvas = canvas;
   }
 
+  // Getters
   public Tool getTool() {
     return tool;
   }
