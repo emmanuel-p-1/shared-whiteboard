@@ -1,5 +1,6 @@
 package client.GUI.whiteboard;
 
+import javafx.geometry.Orientation;
 import javafx.scene.Node;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.ColorPicker;
@@ -34,6 +35,7 @@ public enum ToolProperty {
     @Override
     Node getNode(GraphicsContext gc) {
       Slider slider = new Slider(1, 100, gc.getLineWidth());
+      slider.orientationProperty().setValue(Orientation.VERTICAL);
       slider.setMaxWidth(Double.MAX_VALUE);
       slider.setMajorTickUnit(99);
       slider.setShowTickLabels(true);

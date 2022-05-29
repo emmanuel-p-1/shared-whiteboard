@@ -33,9 +33,9 @@ import java.util.ArrayList;
 
 public class Whiteboard {
   // Canvas for confirmed actions.
-  private final Canvas canvas = new Canvas(1000, 1000);
+  private final Canvas canvas = new Canvas(800, 800);
   // Canvas for local actions.
-  private final Canvas editLayer = new Canvas(1000, 1000);
+  private final Canvas editLayer = new Canvas(800, 800);
   // Text (canvas) for local text.
   private final TextField textLayer = new TextField();
   // Stack of all components.
@@ -61,7 +61,7 @@ public class Whiteboard {
     toolbox.setFillWidth(true);
     textLayer.setVisible(false);
     textLayer.setBackground(Background.EMPTY);
-    textLayer.setMaxWidth(1000);
+    textLayer.setMaxWidth(800);
 
     toolProperties.setSpacing(10);
 
@@ -110,6 +110,7 @@ public class Whiteboard {
   public VBox getToolbox() {
     VBox box = new VBox(toolbox, toolProperties);
     box.setSpacing(50);
+    box.setMaxWidth(100);
     return box;
   }
 
@@ -117,6 +118,7 @@ public class Whiteboard {
   public VBox getAdminToolbox() {
     VBox box = new VBox(options, toolbox, toolProperties);
     box.setSpacing(50);
+    box.setMaxWidth(100);
     return box;
   }
 

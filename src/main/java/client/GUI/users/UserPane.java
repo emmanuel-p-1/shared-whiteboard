@@ -59,6 +59,8 @@ public class UserPane {
     disconnect.setMaxWidth(Double.MAX_VALUE);
     disconnect.setAlignment(Pos.CENTER);
 
+    userPane.setMaxWidth(300);
+
     // Add to pane.
     userPane.getChildren().add(label);
     userPane.getChildren().add(users);
