@@ -31,7 +31,6 @@ public class Server {
       registry = LocateRegistry.createRegistry(port);
       registry.bind(serverName, login);
     } catch (AlreadyBoundException e) {
-      // Unhandled Exception
       e.printStackTrace();
     }
   }

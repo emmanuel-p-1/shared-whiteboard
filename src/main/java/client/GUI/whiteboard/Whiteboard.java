@@ -1,6 +1,7 @@
 package client.GUI.whiteboard;
 
 import client.Client;
+import client.GUI.users.UserPane;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -156,8 +157,7 @@ public class Whiteboard {
               Image image = SwingFXUtils.toFXImage(bi, null);
               gc.drawImage(image, 0, 0, canvas.getWidth(), canvas.getHeight());
             } catch (IOException e) {
-              // Unhandled Exception
-              e.printStackTrace();
+              UserPane.appendOutput("Error uploading image");
             }
           }
         }

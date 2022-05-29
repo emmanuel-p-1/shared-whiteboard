@@ -6,6 +6,7 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
@@ -64,7 +65,7 @@ public class Setup {
   }
 
   public void startup() {
-    networkSelectPane.getChildren().addAll(joinLocalButton, joinRemoteButton);
+    networkSelectPane.getChildren().addAll(joinLocalButton, joinRemoteButton, Client.getError());
 
     networkSelectPane.setAlignment(Pos.CENTER);
     joinLocalButton.setMaxWidth(400);
@@ -77,14 +78,14 @@ public class Setup {
 
   public void onJoinLocalHost() {
     joinLocalButton.setOnAction(e -> {
+      Client.setError("");
       try {
         address.setText(Inet4Address.getLocalHost().getHostAddress());
       } catch (UnknownHostException ex) {
-        // Unhandled Exception
-        ex.printStackTrace();
+        Client.setError("Local host address not found");
       }
 
-      localServerPane.getChildren().addAll(portBox, localServerButton);
+      localServerPane.getChildren().addAll(portBox, localServerButton, Client.getError());
 
       HBox.setHgrow(port, Priority.ALWAYS);
       portBox.setMaxWidth(300);
@@ -99,7 +100,8 @@ public class Setup {
 
   public void onJoinRemoteHost() {
     joinRemoteButton.setOnAction(e -> {
-      remoteServerPane.getChildren().addAll(addressBox, portBox, remoteServerButton);
+      Client.setError("");
+      remoteServerPane.getChildren().addAll(addressBox, portBox, remoteServerButton, Client.getError());
 
       HBox.setHgrow(address, Priority.ALWAYS);
       HBox.setHgrow(port, Priority.ALWAYS);
@@ -116,10 +118,12 @@ public class Setup {
 
   public void onRegistrySelect() {
     localServerButton.setOnAction(e -> {
+      Client.setError("");
       showRegistry();
     });
 
     remoteServerButton.setOnAction(e -> {
+      Client.setError("");
       showRegistry();
     });
   }
@@ -139,10 +143,10 @@ public class Setup {
         });
       }
     } catch (RemoteException ev) {
-      // Unhandled Exception
+      Client.setError("Empty Registry");
     }
 
-    selectNamePane.getChildren().add(selectNameButton);
+    selectNamePane.getChildren().addAll(Client.getError(), selectNameButton);
 
     selectNamePane.setAlignment(Pos.CENTER);
     selectNameButton.setMaxWidth(400);
@@ -153,9 +157,10 @@ public class Setup {
 
   public void onNewRegistry() {
     selectNameButton.setOnAction(e -> {
+      Client.setError("");
       newServer = true;
 
-      newServerPane.getChildren().addAll(serverBox, newServerButton);
+      newServerPane.getChildren().addAll(serverBox, newServerButton, Client.getError());
 
       HBox.setHgrow(serverName, Priority.ALWAYS);
       serverBox.setMaxWidth(300);
@@ -170,12 +175,14 @@ public class Setup {
 
   public void onNewServer() {
     newServerButton.setOnAction(e -> {
+      Client.setError("");
       onUserCreate();
     });
   }
 
   public void onUserCreate() {
-    usernamePane.getChildren().addAll(userBox, joinServer);
+    Client.setError("");
+    usernamePane.getChildren().addAll(userBox, joinServer, Client.getError());
 
     HBox.setHgrow(username, Priority.ALWAYS);
     userBox.setMaxWidth(300);
@@ -189,13 +196,17 @@ public class Setup {
 
   public void onJoinServer() {
     joinServer.setOnAction(e -> {
+      Client.setError("");
       if (newServer) {
         try {
           client.startConnection(getUsername(), getServerName(), getAddress(), getPort());
           client.getRoot().getChildren().add(client.getWhiteboard().getAdminToolbox());
-        } catch (AlreadyBoundException | RemoteException | UnknownHostException ex) {
-          // Unhandled Exception
-          ex.printStackTrace();
+        } catch (AlreadyBoundException ex) {
+          Client.setError("Server name taken");
+        } catch (UnknownHostException ex) {
+          Client.setError("Host address not found");
+        } catch (RemoteException ex) {
+          Client.setError(ex.getMessage());
         }
       } else {
         client.joinConnection(getUsername(), getServerName(), getAddress(), getPort());
@@ -208,7 +219,11 @@ public class Setup {
       client.getUserPane().sendMessage();
       client.getUserPane().onDisconnect();
 
-      waitingPane.getChildren().add(waitingText);
+      waitingText.setDisable(true);
+      waitingText.setBackground(Background.EMPTY);
+      waitingText.setAlignment(Pos.CENTER);
+
+      waitingPane.getChildren().addAll(waitingText, Client.getError());
       waitingPane.setAlignment(Pos.CENTER);
 
       client.getStage().setScene(waitingScene);

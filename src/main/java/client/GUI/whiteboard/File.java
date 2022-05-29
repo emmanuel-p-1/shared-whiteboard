@@ -1,6 +1,7 @@
 package client.GUI.whiteboard;
 
 import client.Client;
+import client.GUI.users.UserPane;
 import javafx.embed.swing.SwingFXUtils;
 import javafx.scene.Node;
 import javafx.scene.SnapshotParameters;
@@ -54,7 +55,7 @@ public enum File {
           ImageIO.write(img, "png", byteArrayOutputStream);
           Client.addAction(new Action(File.OPEN, byteArrayOutputStream.toByteArray()));
         } catch (IOException ex) {
-          ex.printStackTrace();
+          UserPane.appendOutput("Error opening image");
         }
       });
 
@@ -126,7 +127,7 @@ public enum File {
       RenderedImage renderedImage = SwingFXUtils.fromFXImage(writableImage, null);
       ImageIO.write(renderedImage, "png", file);
     } catch (IOException ex) {
-      ex.printStackTrace();
+      UserPane.appendOutput("Error saving image");
     }
   }
 }

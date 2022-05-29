@@ -50,7 +50,6 @@ public class Session extends UnicastRemoteObject implements ISession, Unreferenc
       data.removeSession(this);
       unexportObject(this, true);
     } catch (RemoteException e) {
-      // Unhandled Exception
       e.printStackTrace();
     }
   }

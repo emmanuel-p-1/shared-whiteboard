@@ -7,6 +7,8 @@ import remote.rInterface.ISession;
 import remote.serializable.Message;
 
 import javax.security.auth.login.LoginException;
+import java.rmi.AccessException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -31,12 +33,12 @@ public class Connection extends Thread {
     try {
       Registry registry = LocateRegistry.getRegistry(address, port);
       remote = ((ILogin) registry.lookup(serverName)).login(username);
-    } catch (LoginException e) {
-      // Unhandled Exception
-      System.out.println(e.getMessage());
-    } catch (Exception e) {
-      // Unhandled Exception
-      e.printStackTrace();
+    } catch (AccessException e) {
+      Client.setError("Access denied");
+    } catch (LoginException | RemoteException e) {
+      Client.setError(e.getMessage());
+    } catch (NotBoundException e) {
+      Client.setError("No registry found");
     }
   }
 
@@ -70,7 +72,7 @@ public class Connection extends Thread {
 
         sleep(100);
       } catch (Exception e) {
-        // Unhandled Exception
+        Client.setError("Disconnected from server");
         client.restart();
         interrupt();
       }

@@ -20,7 +20,7 @@ public class UserPane {
   private final Label label = new Label();
   private final VBox userPane = new VBox(10);
   private final TextField input = new TextField();
-  private final TextArea output = new TextArea();
+  private final static TextArea output = new TextArea();
   private final ListView<String> users = new ListView<>();
   private final ListView<String> waiting = new ListView<>();
   private final Button disconnect = new Button("Disconnect");
@@ -51,6 +51,10 @@ public class UserPane {
     userPane.getChildren().add(disconnect);
   }
 
+  public static void appendOutput(String s) {
+    output.appendText("ERROR: " + s + "\n");
+  }
+
   public VBox getUserPane() {
     String name = client.getConnection().getServerName();
     String address = client.getConnection().getAddress();
@@ -68,7 +72,7 @@ public class UserPane {
       try {
         return new UserCell(client);
       } catch (RemoteException e) {
-        e.printStackTrace();
+        output.appendText(e.getMessage() + "\n");
       }
       return null;
     });
@@ -84,7 +88,7 @@ public class UserPane {
       try {
         return new WaitCell(client);
       } catch (RemoteException e) {
-        e.printStackTrace();
+        output.appendText(e.getMessage() + "\n");
       }
       return null;
     });
@@ -96,8 +100,7 @@ public class UserPane {
       try {
         client.getConnection().getRemote().sendMessage(message);
       } catch (RemoteException ex) {
-        // Unhandled Exception
-        ex.printStackTrace();
+        output.appendText("Error sending message" + "\n");
       }
       input.clear();
     });
@@ -136,8 +139,7 @@ public class UserPane {
         try {
           client.getConnection().getRemote().kick(getItem());
         } catch (RemoteException e) {
-          // Unhandled Exception
-          e.printStackTrace();
+          Client.setError(e.getMessage());
         }
       });
     }
@@ -163,8 +165,7 @@ public class UserPane {
             setGraphic(nokick);
           }
         } catch (RemoteException e) {
-          // Unhandled Exception
-          e.printStackTrace();
+          Client.setError(e.getMessage());
         }
       }
     }
@@ -189,16 +190,14 @@ public class UserPane {
         try {
           client.getConnection().getRemote().approve(getItem());
         } catch (RemoteException e) {
-          // Unhandled Exception
-          e.printStackTrace();
+          Client.setError(e.getMessage());
         }
       });
       reject.setOnAction(event -> {
         try {
           client.getConnection().getRemote().reject(getItem());
         } catch (RemoteException e) {
-          // Unhandled Exception
-          e.printStackTrace();
+          Client.setError(e.getMessage());
         }
       });
     }
@@ -217,8 +216,7 @@ public class UserPane {
             setGraphic(box);
           }
         } catch (RemoteException e) {
-          // Unhandled Exception
-          e.printStackTrace();
+          Client.setError(e.getMessage());
         }
       }
     }

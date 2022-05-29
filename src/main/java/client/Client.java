@@ -6,7 +6,10 @@ import client.GUI.whiteboard.Whiteboard;
 import client.connection.Connection;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.TextField;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
 import remote.serializable.Action;
@@ -37,7 +40,17 @@ public class Client extends Application {
   private Server server;
   private Connection connection;
 
+  private static TextField error;
+
   private static final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+  public static TextField getError() {
+    return error;
+  }
+
+  public static void setError(String s) {
+    error.setText(s);
+  }
 
   public static ArrayList<Action> getActions() {
     ArrayList<Action> tmp;
@@ -75,6 +88,8 @@ public class Client extends Application {
 
   @Override
   public void start(Stage primaryStage) {
+    error = new TextField();
+
     this.primaryStage = primaryStage;
     initialise();
   }
@@ -104,6 +119,10 @@ public class Client extends Application {
     wb.getCanvas().setOnMouseDragged(wb::draw);
     wb.getCanvas().setOnMousePressed(wb::click);
     wb.getCanvas().setOnMouseReleased(wb::release);
+
+    error.setDisable(true);
+    error.setBackground(Background.EMPTY);
+    error.setAlignment(Pos.CENTER);
   }
 
   public void startConnection(String username, String serverName, String address, int port) throws AlreadyBoundException, RemoteException, UnknownHostException {
@@ -165,9 +184,10 @@ public class Client extends Application {
   public void restart() {
     try {
       closeConnection();
-    } catch (RemoteException | NotBoundException e) {
-      // Unhandled Exception
-      e.printStackTrace();
+    } catch (RemoteException e) {
+      setError("Error communicating to server");
+    } catch (NotBoundException e) {
+      setError("Registry not bound");
     }
     Platform.runLater(this::initialise);
   }
