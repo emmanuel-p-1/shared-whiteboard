@@ -39,8 +39,7 @@ public class Whiteboard {
   // Text (canvas) for local text.
   private final TextField textLayer = new TextField();
   // Stack of all components.
-  private final StackPane canvasContainer = new StackPane(canvas, editLayer,
-          textLayer);
+  private final AnchorPane canvasContainer = new AnchorPane();
 
   // Brush toolbox.
   private final VBox toolbox = new VBox();
@@ -58,6 +57,24 @@ public class Whiteboard {
   // Create whiteboard with all tools.
   public Whiteboard(Client client) {
     canvasContainer.setBorder(getBorder());
+    AnchorPane.setBottomAnchor(canvas, 0.0);
+    AnchorPane.setLeftAnchor(canvas, 0.0);
+    AnchorPane.setRightAnchor(canvas, 0.0);
+    AnchorPane.setTopAnchor(canvas, 0.0);
+    canvasContainer.getChildren().add(canvas);
+
+    AnchorPane.setBottomAnchor(editLayer, 0.0);
+    AnchorPane.setLeftAnchor(editLayer, 0.0);
+    AnchorPane.setRightAnchor(editLayer, 0.0);
+    AnchorPane.setTopAnchor(editLayer, 0.0);
+    canvasContainer.getChildren().add(editLayer);
+
+    AnchorPane.setBottomAnchor(textLayer, 0.0);
+    AnchorPane.setLeftAnchor(textLayer, 0.0);
+    AnchorPane.setRightAnchor(textLayer, 0.0);
+    AnchorPane.setTopAnchor(textLayer, 0.0);
+    canvasContainer.getChildren().add(textLayer);
+
     toolbox.setFillWidth(true);
     textLayer.setVisible(false);
     textLayer.setBackground(Background.EMPTY);
@@ -92,7 +109,7 @@ public class Whiteboard {
   }
 
   // Get stack of all "canvases"
-  public StackPane getCanvas() {
+  public AnchorPane getCanvas() {
     return canvasContainer;
   }
 

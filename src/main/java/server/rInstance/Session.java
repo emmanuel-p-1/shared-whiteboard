@@ -100,9 +100,11 @@ public class Session extends UnicastRemoteObject implements ISession,
             data.addAction(action);
             LOCK = false;
           }
-        } else if (action.getOption().equals(File.CLOSE)) {
+        } else {
+          if (action.getOption().equals(File.CLOSE)) {
+            LOCK = true;
+          }
           data.addAction(action);
-          LOCK = true;
         }
       }
       if (action.getTool() != null && !LOCK) data.addAction(action);
